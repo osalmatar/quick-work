@@ -9,28 +9,51 @@ F = pd.read_csv('Pattern_Revv.csv')
 G = pd.read_csv('SCTR_Trial.csv')
 H = pd.read_csv('ZigZag.csv')
 
-#Data cleaning to rename each value of Buy into the name of the tinker instead of 1
+A.rename(columns={'Buy': 'Buy_ATR'}, inplace=True)
+A['Buy_ATR'] = A['Buy_ATR'].replace(1, 'ATR')
+A.head
 
-#ATR
-A['Buy'] = A['Buy'].replace(1, 'ATR')
+B.rename(columns={'Mega Buy by Larger Wave ': 'Buy_EW'}, inplace=True)
+B['Buy_EW'] = 'EW'
+B['Buy_EW'].unique()
 
-#D_EW
-B.rename(columns={'Mega Buy by Larger Wave ': 'Buy'}, inplace=True)
-B['Buy'] = 'EW'
+E.rename(columns={'myBuy ': 'Buy_LR'}, inplace=True)
+E['Buy_LR'] = E['Buy_LR'].replace(1, 'LR')
+E.head()
 
-#LR_Explore
-E.rename(columns={'myBuy ': 'Buy'}, inplace=True)
-E['Buy'] = E['Buy'].replace(1, 'LR')
+F.rename(columns={'BullBreak': 'Buy_BB'}, inplace=True)
+F['Buy_BB'] = F['Buy_BB'].replace('bullish Breakout', 'BB')
+F['Pattern'].unique()
 
-#Pattern_Revv
-F.rename(columns={'BullBreak': 'Buy'}, inplace=True)
-F['Buy'] = F['Buy'].replace('bullish Breakout', 'BB')
+# Create the function to change the values 
+def change_status(value):
+    if value =='Wedge':
+        return 'W'
+    elif value == 'Up Channel':
+        return 'UC'
+    elif value == 'Down Channel':
+        return 'DC'
+    elif value == 'Broadening Wedge':
+        return 'BW'
+    elif value == 'Ascending Triangle':
+        return 'AT'
+    elif value == 'Decending Triangle':
+        return 'DT'
+    else:
+        return value
+    
 
-#Zigzag
-H['Buy'] = H['Buy'].replace(1, 'ZZ')
+#Apply the function on pattern from dataset F
+F['Pattern'] = F['Pattern'].apply(change_status)
+F['Pattern'].unique()
+
+H.rename(columns={'Buy':'Buy_ZZ'}, inplace=True)
+H['Buy_ZZ'] = H['Buy_ZZ'].replace(1, 'ZZ')
+H['Buy_ZZ'].unique()
 
 
-# Main function starts here
+# Main function
+
 # List of dataframes to merge
 tables = [A, B, C, D, E, F, G, H]
 
@@ -55,6 +78,15 @@ final_table = final_table.pivot_table(index=['Date/Time', 'Ticker'], columns='Fi
 cols = ['Ticker', 'Date/Time'] + [col for col in final_table.columns if col not in ['Ticker', 'Date/Time']]
 final_table = final_table[cols]
 
+# Fill NaN values with empty strings for the relevant columns
+final_table[['Buy_ATR', 'Buy_EW', 'Buy_BB', 'Buy_LR', 'Pattern']] = final_table[['Buy_ATR', 'Buy_EW', 'Buy_BB', 'Buy_LR', 'Pattern']].fillna('')
+
+# Create the 'Buy' column by concatenating the values from relevant columns
+final_table['Buy'] = final_table['Buy_ATR'].astype(str) + final_table['Buy_EW'].astype(str) + final_table['Buy_BB'].astype(str) + final_table['Buy_LR'].astype(str) + final_table['Pattern'].astype(str)
+
+# Re-arrange columns to place 'Buy' in the desired order
+cols = ['Ticker', 'Date/Time', 'Buy'] + [col for col in final_table.columns if col not in ['Ticker', 'Date/Time', 'Buy']]
+final_table = final_table[cols]
+
 # Save the result to a CSV file
 final_table.to_csv('joined_tickers.csv', index=False)
-
