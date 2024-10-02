@@ -24,4 +24,5 @@ output_df = process_ticker_data('EW_Conv.csv')
 
 
 # Save the result to a new CSV file
-output_df.to_csv('last_day_ticker_output.csv', index=False)
+output_df.to_csv('last_day_ticker_output_updated.csv', index=False)
+
