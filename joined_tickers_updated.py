@@ -28,17 +28,17 @@ F['Pattern'].unique()
 # Create the function to change the values 
 def change_status(value):
     if value =='Wedge':
-        return 'W'
+        return '_W'
     elif value == 'Up Channel':
-        return 'UC'
+        return '_UC'
     elif value == 'Down Channel':
-        return 'DC'
+        return '_DC'
     elif value == 'Broadening Wedge':
-        return 'BW'
+        return '_BW'
     elif value == 'Ascending Triangle':
-        return 'AT'
+        return '_AT'
     elif value == 'Decending Triangle':
-        return 'DT'
+        return '_DT'
     else:
         return value
     
