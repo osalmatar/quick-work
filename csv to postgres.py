@@ -1,10 +1,10 @@
 import pandas as pd
 import psycopg2
 
-# Load DataFrame from CSV and specify column types
+# Load DataFrame from cleaned CSV and specify column types
 def load_from_csv():
     return pd.read_csv(
-        'merged_tickers.csv',
+        'cleaned_merged_tickers.csv',
         dtype={
             'Alert': 'str',  # Alert will be initially loaded as a string
             'BearBreak': 'str', 
@@ -32,9 +32,6 @@ def prepare_data_for_insert(df):
     # Replace NaN with None for numerical columns while keeping NaN for categorical columns
     df = df.where(pd.notna(df), None)
 
-    # Filter out rows where 'Buy' is empty (None, NaN, or empty string)
-    df = df[df['Buy'].notna() & (df['Buy'] != '')]
-
     return df
 
 # Function to insert DataFrame into PostgreSQL
@@ -45,7 +42,7 @@ def insert_to_postgres(df):
             host="localhost",  # your host
             database="postgres",  # your database
             user="postgres",  # your username
-            password="password",  # replace with your PostgreSQL password
+            password="St1uv9ac29!",  # replace with your PostgreSQL password
             port="5432"  # default port for PostgreSQL
         )
         
@@ -58,7 +55,7 @@ def insert_to_postgres(df):
         cur.execute(drop_table_query)
         conn.commit()
 
-        # Create table in PostgreSQL with the correct structure and 'Buy' as the last column
+        # Create table in PostgreSQL with the correct structure
         create_table_query = '''
         CREATE TABLE IF NOT EXISTS joined_tickers (
             date_time TIMESTAMP,
@@ -97,7 +94,7 @@ def insert_to_postgres(df):
         cur.execute(create_table_query)
         conn.commit()
 
-        # Insert data into PostgreSQL, with 'Buy' as the last field
+        # Insert data into PostgreSQL
         insert_query = '''
         INSERT INTO joined_tickers (date_time, ticker, buy, alert, bearbreak, buy_atr, buy_bb, buy_ew, buy_lr, buy_zz, close, 
             dnbars, downtrend_length, fromhigh, fromlow, lr_lc, lr_mc, lr_uc, mega_sellby_larger_wave, numberoftickers, 
@@ -107,12 +104,12 @@ def insert_to_postgres(df):
 
         # Iterate over DataFrame and insert each row
         for _, row in df.iterrows():
-            # Prepare the row of values for insertion, with 'Buy' as the last value
+            # Prepare the row of values for insertion
             values = (
                 row['Date/Time'], 
                 row['Ticker'], 
-                row['Buy'],  # Buy remains as text
-                row.get('Alert', 0),  # Alert with non-numeric values treated as 0
+                row['Buy'],  
+                row.get('Alert', 0),  
                 row.get('BearBreak', 0),
                 row.get('Buy_ATR', None),
                 row.get('Buy_BB', None),
@@ -161,7 +158,6 @@ def insert_to_postgres(df):
 
 # Load and prepare the data
 df = load_from_csv()
-
 df = prepare_data_for_insert(df)
 
 # Insert the DataFrame into PostgreSQL

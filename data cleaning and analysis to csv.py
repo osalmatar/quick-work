@@ -1,6 +1,6 @@
 import pandas as pd
 
-# Function to load CSV files and return a merged DataFrame
+# Function to load CSV files, clean, and return a merged DataFrame with only the latest Date/Time
 def load_and_merge_csv():
     A = pd.read_csv('ATR.csv')
     B = pd.read_csv('D_EW_B.csv')
@@ -10,6 +10,10 @@ def load_and_merge_csv():
     F = pd.read_csv('Pattern_Revv.csv')
     G = pd.read_csv('SCTR_Trial.csv')
     H = pd.read_csv('ZigZag.csv')
+
+    # Ensure Date/Time is properly parsed as datetime
+    for df in [A, B, C, D, E, F, G, H]:
+        df['Date/Time'] = pd.to_datetime(df['Date/Time'], errors='coerce')
 
     # Renaming columns and performing necessary transformations
     A.rename(columns={'Buy': 'Buy_ATR'}, inplace=True)
@@ -24,7 +28,7 @@ def load_and_merge_csv():
     F.rename(columns={'BullBreak': 'Buy_BB'}, inplace=True)
     F['Buy_BB'] = F['Buy_BB'].replace('bullish Breakout', 'BB')
 
-    H.rename(columns={'Buy':'Buy_ZZ'}, inplace=True)
+    H.rename(columns={'Buy': 'Buy_ZZ'}, inplace=True)
     H['Buy_ZZ'] = H['Buy_ZZ'].replace(1, 'ZZ')
 
     # Map values in the 'Pattern' column to new values
@@ -36,8 +40,6 @@ def load_and_merge_csv():
         'Ascending Triangle': '_AT',
         'Decending Triangle': '_DT'
     }
-
-    # Apply the pattern mapping to column 'Pattern'
     F['Pattern'] = F['Pattern'].replace(pattern_mapping)
 
     # Merge tables
@@ -66,13 +68,26 @@ def load_and_merge_csv():
     # Apply the function row-by-row to create the Buy column
     final_table['Buy'] = final_table.apply(concatenate_non_nan, axis=1)
 
-    # Save the final table to a CSV (optional, for manual review)
-    final_table.to_csv('merged_tickers.csv', index=False)
+    # Filter out rows where 'Buy' matches certain patterns
+    exclude_values = ['_UC', '_W', '_DC', '_BW', '_AT', '_DT']
+    final_table = final_table[~final_table['Buy'].isin(exclude_values)]
 
-    # Return the final DataFrame
-    return final_table
+    # Filter out rows where 'Buy' is empty (None, NaN, or empty string)
+    final_table = final_table[final_table['Buy'].notna() & (final_table['Buy'] != '')]
+
+    # Find the latest Date/Time
+    latest_date = final_table['Date/Time'].max()
+
+    # Filter the DataFrame to include only rows with the latest Date/Time
+    latest_records = final_table[final_table['Date/Time'] == latest_date]
+
+    # Save the final filtered DataFrame to a CSV
+    latest_records.to_csv('cleaned_merged_tickers.csv', index=False)
+
+    return latest_records
 
 # Call the function to load and merge CSV files
 df = load_and_merge_csv()
 
-print(df[['Ticker', 'Date/Time', 'Buy', 'Pattern']].tail())  # Print to verify the DataFrame output
+
+print(df[['Ticker', 'Date/Time', 'Buy', 'Pattern']].head())  # Print to verify the DataFrame output
