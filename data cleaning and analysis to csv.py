@@ -1,6 +1,11 @@
 import pandas as pd
 
-# Function to load CSV files, clean, and return a merged DataFrame with only the latest Date/Time
+# Function to create a primary key based on 'Ticker' and 'Date/Time'
+def create_primary_key(df):
+    df['Primary_Key'] = df['Ticker'].astype(str) + '_' + df['Date/Time'].astype(str)
+    return df
+
+# Function to load and merge CSV files, clean, and return a merged DataFrame with only the latest Date/Time
 def load_and_merge_csv():
     A = pd.read_csv('ATR.csv')
     B = pd.read_csv('D_EW_B.csv')
@@ -84,10 +89,33 @@ def load_and_merge_csv():
     # Save the final filtered DataFrame to a CSV
     latest_records.to_csv('cleaned_merged_tickers.csv', index=False)
 
+    # Create a primary key to merge with EW_Conv
+    latest_records = create_primary_key(latest_records)
+
     return latest_records
+
+# Function to load EW_Conv, create a primary key, and merge with cleaned_merged_tickers
+def load_and_merge_with_ew_conv():
+    # Load cleaned merged tickers
+    cleaned_tickers = pd.read_csv('cleaned_merged_tickers.csv')
+    
+    # Load EW_Conv and ensure 'Date/Time' is datetime
+    ew_conv = pd.read_csv('ew_conv_updated.csv')
+    ew_conv['Date/Time'] = pd.to_datetime(ew_conv['Date/Time'], errors='coerce')
+
+    # Create primary key for both datasets
+    cleaned_tickers = create_primary_key(cleaned_tickers)
+    ew_conv = create_primary_key(ew_conv)
+
+    # Merge datasets on primary key (Ticker + Date/Time)
+    merged_df = pd.merge(cleaned_tickers, ew_conv, on='Primary_Key', how='inner')
+
+    return merged_df
 
 # Call the function to load and merge CSV files
 df = load_and_merge_csv()
+merged_tickers = load_and_merge_with_ew_conv()
 
+# Save the final merged DataFrame to 'Tickers.csv'
+merged_tickers.to_csv('Tickers.csv', index=False)
 
-print(df[['Ticker', 'Date/Time', 'Buy', 'Pattern']].head())  # Print to verify the DataFrame output
