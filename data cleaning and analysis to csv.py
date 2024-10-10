@@ -1,11 +1,24 @@
 import pandas as pd
+import yfinance as yf
 
-# Function to create a primary key based on 'Ticker' and 'Date/Time'
-def create_primary_key(df):
-    df['Primary_Key'] = df['Ticker'].astype(str) + '_' + df['Date/Time'].astype(str)
-    return df
+# Function to process ticker data and add 'Call' and 'Status' columns
+def process_ticker_data(df):
+    # Step 1: Create the 'Call' column based on the 'Mega Buy by Larger Wave ' column
+    df['Call'] = df['Mega Buy by Larger Wave '].apply(lambda x: 'Long' if pd.notna(x) and x > 1 else 'Short')
 
-# Function to load and merge CSV files, clean, and return a merged DataFrame with only the latest Date/Time
+    # Step 2: Convert 'Date/Time' to datetime and sort by 'Ticker' and 'Date/Time'
+    df['Date/Time'] = pd.to_datetime(df['Date/Time'], errors='coerce')  # Convert 'Date/Time' safely
+    df = df.sort_values(by=['Ticker', 'Date/Time'])
+
+    # Step 3: Extract the last row for each Ticker without filling NaN values using agg
+    last_day_df = df.groupby('Ticker').agg(lambda x: x.iloc[-1]).reset_index()
+
+    # Step 4: Create the 'Status' column based on the 'Call' value in the last record for each Ticker
+    last_day_df['Status'] = last_day_df['Call'].apply(lambda x: 'Open' if x == 'Long' else 'Close')
+
+    return last_day_df
+
+# Function to load and clean multiple CSV files
 def load_and_merge_csv():
     A = pd.read_csv('ATR.csv')
     B = pd.read_csv('D_EW_B.csv')
@@ -84,38 +97,63 @@ def load_and_merge_csv():
     latest_date = final_table['Date/Time'].max()
 
     # Filter the DataFrame to include only rows with the latest Date/Time
-    latest_records = final_table[final_table['Date/Time'] == latest_date]
+    latest_records = final_table[final_table['Date/Time'] == latest_date].copy()  # Use .copy() to avoid SettingWithCopyWarning
+
+    # Create a new column for current stock price using .loc
+    latest_records.loc[:, 'Current_Price'] = None
+
+    for index, row in latest_records.iterrows():
+        stock_symbol = row['Ticker']  # Set stock symbol from each row in 'Ticker'
+        stock = yf.Ticker(stock_symbol)
+
+        # Get the current price using iloc to avoid FutureWarning
+        try:
+            current_price = stock.history(period='1d')['Close'].iloc[0]
+            latest_records.loc[index, 'Current_Price'] = current_price
+        except IndexError:
+            latest_records.loc[index, 'Current_Price'] = None  # Handle cases where price data is unavailable
+
+    # Replace NaN or infinite values in 'Close' and 'll' before division to avoid ZeroDivisionError
+    # Explicitly convert to float after filling NaN
+    # Convert object columns to their inferred types before applying .fillna()
+    latest_records['Close'] = latest_records['Close'].infer_objects().fillna(0).astype(float)
+    latest_records['ll'] = latest_records['ll'].infer_objects().fillna(0).astype(float)
+
+
+
+    # Avoid division by zero by replacing zero values in 'Close - ll' with a small non-zero number
+    latest_records['Quantity'] = 1000 / latest_records.apply(lambda row: (row['Close'] - row['ll']) if (row['Close'] - row['ll']) != 0 else 1e-6, axis=1)
+
+    # Calculate 'P/L Percentage'
+    latest_records['P/L Percentage'] = (latest_records['Current_Price'] - latest_records['Close']) / latest_records['Close']
+
+    # Round 'Current_Price', 'Close', and 'P/L Percentage' to 2 decimal digits
+    latest_records['Current_Price'] = latest_records['Current_Price'].round(2)
+    latest_records['Close'] = latest_records['Close'].round(2)
+    latest_records['P/L Percentage'] = latest_records['P/L Percentage'].round(2)
+    latest_records['Quantity'] = latest_records['Quantity'].round(0)
 
     # Save the final filtered DataFrame to a CSV
     latest_records.to_csv('cleaned_merged_tickers.csv', index=False)
 
-    # Create a primary key to merge with EW_Conv
-    latest_records = create_primary_key(latest_records)
-
     return latest_records
 
-# Function to load EW_Conv, create a primary key, and merge with cleaned_merged_tickers
-def load_and_merge_with_ew_conv():
-    # Load cleaned merged tickers
-    cleaned_tickers = pd.read_csv('cleaned_merged_tickers.csv')
-    
+# Function to load and process ew_conv, process it, and output separately
+def load_and_process_ew_conv():
     # Load EW_Conv and ensure 'Date/Time' is datetime
-    ew_conv = pd.read_csv('ew_conv_updated.csv')
+    ew_conv = pd.read_csv('EW_Conv.csv')
     ew_conv['Date/Time'] = pd.to_datetime(ew_conv['Date/Time'], errors='coerce')
 
-    # Create primary key for both datasets
-    cleaned_tickers = create_primary_key(cleaned_tickers)
-    ew_conv = create_primary_key(ew_conv)
+    # Process the ew_conv dataset using the process_ticker_data function
+    processed_ew_conv = process_ticker_data(ew_conv)
 
-    # Merge datasets on primary key (Ticker + Date/Time)
-    merged_df = pd.merge(cleaned_tickers, ew_conv, on='Primary_Key', how='inner')
+    # Save the processed ew_conv DataFrame to a CSV file
+    processed_ew_conv.to_csv('processed_ew_conv.csv', index=False)
 
-    return merged_df
+    return processed_ew_conv
 
-# Call the function to load and merge CSV files
-df = load_and_merge_csv()
-merged_tickers = load_and_merge_with_ew_conv()
+# Call the function to load and process the datasets separately
+df_cleaned_merged_tickers = load_and_merge_csv()
+df_processed_ew_conv = load_and_process_ew_conv()
 
-# Save the final merged DataFrame to 'Tickers.csv'
-merged_tickers.to_csv('Tickers.csv', index=False)
-
+# The two datasets are saved as 'cleaned_merged_tickers.csv' and 'processed_ew_conv.csv'
