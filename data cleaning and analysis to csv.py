@@ -16,6 +16,9 @@ def process_ticker_data(df):
     # Step 4: Create the 'Status' column based on the 'Call' value in the last record for each Ticker
     last_day_df['Status'] = last_day_df['Call'].apply(lambda x: 'Open' if x == 'Long' else 'Close')
 
+    # Step 5: Filter and remove rows where Call field is Short
+    last_day_df = last_day_df[last_day_df['Call'] == 'Long']
+
     return last_day_df
 
 # Function to load and clean multiple CSV files
