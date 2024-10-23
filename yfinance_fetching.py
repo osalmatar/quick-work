@@ -1,32 +1,66 @@
-import pandas as pd
 import yfinance as yf
+import pandas as pd
+import psycopg2
+from datetime import datetime
 
 # Read the Excel file
-df = pd.read_excel('yfinance.xlsx')  
+file_path = 'yfinance.xlsx'
+df = pd.read_excel(file_path)
 
-# Ensure there are no duplicates in the Tickers field
-tickers = df['Ticker']
+# Limit the DataFrame to the top 50 rows for testing 
+df = df.head(50)
 
-# Create an empty list to store the current prices
-current_prices = []
+# Create a new column 'CMP' to store the current prices and 'Sell Date' for the current date
+df['CMP'] = None
+df['Sell Date'] = datetime.today().strftime('%Y-%m-%d')  # Current date in 'YYYY-MM-DD' format
 
-# Loop through each ticker in the Tickers field
-for stock_symbol in tickers:
+# Loop through the 'Ticker' column and fetch current price for each ticker
+for index, row in df.iterrows():
+    stock_symbol = row['Ticker']
     stock = yf.Ticker(stock_symbol)
-
-    try:
-        # Get the current price (latest close price)
-        current_price = stock.history(period='1d')['Close'].iloc[0]
-    except IndexError:
-        current_price = None  # Handle cases where price data is unavailable
     
-    # Append the current price to the list
-    current_prices.append(current_price)
-
-# Add the 'Current Price' column to the DataFrame
-df['CMP'] = current_prices
+    try:
+        current_price = stock.history(period='1d')['Close'].iloc[0]
+        df.at[index, 'CMP'] = current_price
+    except (IndexError, KeyError):
+        print(f"Could not fetch price for {stock_symbol}")
 
 # Save the updated DataFrame back to Excel
-df.to_excel('yfinance_with_current_prices.xlsx', index=False)
+output_file = 'yfinance_cmp.xlsx'
+df.to_excel(output_file, index=False)
 
-print("Current prices added and file saved as 'yfinance_with_current_prices.xlsx'.")
+# PostgreSQL database connection setup
+conn = psycopg2.connect(
+        host="localhost",
+        database="postgres",
+        user="postgres",
+        password="St1uv9ac29!",
+        port="5432"
+    )
+cur = conn.cursor()
+
+# Create table if it doesn't exist with quoted column names for case sensitivity
+create_table_query = '''
+CREATE TABLE IF NOT EXISTS yfinance_data (
+    "Ticker" TEXT,   
+    "CMP" FLOAT,
+    "Sell_Date" DATE
+);
+'''
+cur.execute(create_table_query)
+conn.commit()
+
+# Insert data into the PostgreSQL table with quoted column names
+for index, row in df.iterrows():
+    insert_query = '''
+    INSERT INTO yfinance_data ("Ticker", "CMP", "Sell_Date") 
+    VALUES (%s, %s, %s);
+    '''
+    cur.execute(insert_query, (row['Ticker'], row['CMP'], row['Sell Date']))
+
+# Commit changes and close the connection
+conn.commit()
+cur.close()
+conn.close()
+
+print(f"Data saved to {output_file} and sent to PostgreSQL.")
