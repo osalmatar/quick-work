@@ -78,7 +78,7 @@ def load_and_merge_csv():
     final_table = final_table[final_table['Date/Time'] == max_date]
 
     # Rename and keep only the necessary columns
-    final_table = final_table[['Date/Time', 'Ticker', 'Buy Strat']]
+    final_table = final_table[['Date/Time', 'Ticker', 'Buy Strat', 'll']]
     final_table = final_table.rename(columns={'Date/Time': 'Buy Date'})
 
     return final_table
@@ -101,9 +101,9 @@ def fetch_and_merge_cmp_and_ew_conv(final_table):
     # Merge CMP data with final_table
     merged_table = pd.merge(final_table, cmp_df, on='Ticker', how='left')
 
-    # Fetch ew_conv_table data (Ticker, Last Alert Date, Stop Loss, Buy Price, Target, Call, Status)
+    # Fetch ew_conv_table data (Ticker, Last Alert Date, ll, Buy Price, Target, Call, Status)
     ew_conv_query = '''
-    SELECT "Ticker", "Last Alert Date", "Stop Loss", "Buy Price", "Target", "Call", "Status" 
+    SELECT "Ticker", "Last Alert Date", "Buy Price", "Target", "Call", "Status" 
     FROM ew_conv_table
     '''
     ew_conv_df = pd.read_sql(ew_conv_query, conn)
@@ -134,17 +134,17 @@ def fetch_and_merge_cmp_and_ew_conv(final_table):
     print(merged_table[['Buy Date', 'Last Alert Date', 'CMP_Date']].head())  # Confirm correct dates
 
     # Calculate quantity and round floats to 2 decimal places
-    merged_table['Quantity'] = (1000 / (merged_table['Buy Price'] - merged_table['Stop Loss'])).round(2)
+    merged_table['Quantity'] = (1000 / (merged_table['Buy Price'] - merged_table['ll'])).round(2)
     merged_table['CMP'] = merged_table['CMP'].round(2)
-    merged_table['Stop Loss'] = merged_table['Stop Loss'].round(2)
+    merged_table['ll'] = merged_table['ll'].round(2)
     merged_table['Buy Price'] = merged_table['Buy Price'].round(2)
     merged_table['Target'] = merged_table['Target'].round(2)
 
     # Apply logic for Call and Status adjustments
     def adjust_call_status(row):
         if row['Call'] == 'Long' and row['Status'] == 'Open':
-            if row['CMP'] < row['Stop Loss']:
-                return 'Short', 'Closed', 'ISL Hit', round(row['Stop Loss'], 2)
+            if row['CMP'] < row['ll']:
+                return 'Short', 'Closed', 'ISL Hit', round(row['ll'], 2)
             elif row['CMP'] >= row['Target']:
                 return 'Short', 'Closed', 'Target Hit', round(row['Target'], 2)
         return row['Call'], row['Status'], None, None
@@ -160,7 +160,7 @@ def fetch_and_merge_cmp_and_ew_conv(final_table):
 # Save final data to CSV and upload to PostgreSQL
 def save_and_upload(final_table):
     # Ensure correct data types
-    final_table['Stop Loss'] = pd.to_numeric(final_table['Stop Loss'], errors='coerce')
+    final_table['ll'] = pd.to_numeric(final_table['ll'], errors='coerce')
     final_table['Buy Price'] = pd.to_numeric(final_table['Buy Price'], errors='coerce')
     final_table['Target'] = pd.to_numeric(final_table['Target'], errors='coerce')
     final_table['CMP'] = pd.to_numeric(final_table['CMP'], errors='coerce')
@@ -172,7 +172,7 @@ def save_and_upload(final_table):
     final_table['CMP_Date'] = pd.to_datetime(final_table['CMP_Date']).dt.date
 
     # Ensure column order matches the SQL query
-    final_table = final_table[['Buy Date', 'Ticker', 'Buy Strat', 'Last Alert Date', 'Stop Loss', 'Buy Price', 
+    final_table = final_table[['Buy Date', 'Ticker', 'Buy Strat', 'Last Alert Date', 'll', 'Buy Price', 
                                'Target', 'Call', 'Status', 'CMP', 'CMP_Date', 'Quantity', 'Hit Type', 
                                'Sell Price', 'Broker']]
 
@@ -195,7 +195,7 @@ def save_and_upload(final_table):
         "Ticker" TEXT,
         "Buy Strat" TEXT,
         "Last Alert Date" DATE,
-        "Stop Loss" FLOAT,
+        "ll" FLOAT,
         "Buy Price" FLOAT,
         "Target" FLOAT,
         "Call" TEXT,
@@ -215,14 +215,14 @@ def save_and_upload(final_table):
     # Insert or update data into PostgreSQL
     for _, row in final_table.iterrows():
         insert_query = '''
-        INSERT INTO trade_journal ("Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "Stop Loss", "Buy Price", "Target", 
+        INSERT INTO trade_journal ("Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Buy Price", "Target", 
         "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", "Sell Price", "Broker") 
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT ("Buy Date", "Ticker")
         DO UPDATE SET 
             "Buy Strat" = EXCLUDED."Buy Strat",
             "Last Alert Date" = EXCLUDED."Last Alert Date",
-            "Stop Loss" = EXCLUDED."Stop Loss",
+            "ll" = EXCLUDED."ll",
             "Buy Price" = EXCLUDED."Buy Price",
             "Target" = EXCLUDED."Target",
             "Call" = EXCLUDED."Call",
@@ -259,7 +259,7 @@ def transfer_records():
         "Ticker" TEXT,
         "Buy Strat" TEXT,
         "Last Alert Date" DATE,
-        "Stop Loss" FLOAT,
+        "ll" FLOAT,
         "Buy Price" FLOAT,
         "Target" FLOAT,
         "Call" TEXT,
@@ -278,9 +278,9 @@ def transfer_records():
 
     # Insert specific records (e.g., closed trades) from trade_journal into archived_trades
     transfer_query = '''
-    INSERT INTO archived_trades ("Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "Stop Loss", "Buy Price", "Target", 
+    INSERT INTO archived_trades ("Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Buy Price", "Target", 
     "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", "Sell Price", "Broker")
-    SELECT "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "Stop Loss", "Buy Price", "Target", 
+    SELECT "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Buy Price", "Target", 
            "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", "Sell Price", "Broker"
     FROM trade_journal
     WHERE "Status" = 'Closed'
@@ -296,6 +296,13 @@ def transfer_records():
     WHERE "Status" = 'Closed';
     '''
     cur.execute(delete_query)
+    conn.commit()
+
+    delete_query2 = '''
+    DELETE FROM trade_journal
+    WHERE "Status" = 'Close';
+    '''
+    cur.execute(delete_query2)
     conn.commit()
 
     cur.close()

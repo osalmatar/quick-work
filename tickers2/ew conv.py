@@ -28,10 +28,9 @@ def load_and_process_ew_conv():
     processed_ew_conv = process_ticker_data(ew_conv)
     
     # Select and rename columns
-    processed_ew_conv = processed_ew_conv[['Ticker', 'Date/Time', 'SL', 'Mega Buy by Larger Wave ', 'Mega Sellby Larger Wave', 'Call', 'Status']]
+    processed_ew_conv = processed_ew_conv[['Ticker', 'Date/Time', 'Mega Buy by Larger Wave ', 'Mega Sellby Larger Wave', 'Call', 'Status']]
     processed_ew_conv.rename(columns={
         'Date/Time': 'Last Alert Date',
-        'SL': 'Stop Loss',
         'Mega Buy by Larger Wave ': 'Buy Price',
         'Mega Sellby Larger Wave': 'Target'
     }, inplace=True)
@@ -58,7 +57,6 @@ def load_and_process_ew_conv():
     CREATE TABLE IF NOT EXISTS ew_conv_table (
         "Ticker" VARCHAR(50),
         "Last Alert Date" TIMESTAMP,
-        "Stop Loss" FLOAT,
         "Buy Price" FLOAT,
         "Target" FLOAT,
         "Call" VARCHAR(10),
@@ -70,11 +68,10 @@ def load_and_process_ew_conv():
 
     # Insert or update data into the PostgreSQL table
     insert_query = '''
-    INSERT INTO ew_conv_table ("Ticker", "Last Alert Date", "Stop Loss", "Buy Price", "Target", "Call", "Status")
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO ew_conv_table ("Ticker", "Last Alert Date", "Buy Price", "Target", "Call", "Status")
+    VALUES (%s, %s, %s, %s, %s, %s)
     ON CONFLICT ("Ticker", "Last Alert Date")
     DO UPDATE SET
-        "Stop Loss" = EXCLUDED."Stop Loss",
         "Buy Price" = EXCLUDED."Buy Price",
         "Target" = EXCLUDED."Target",
         "Call" = EXCLUDED."Call",
