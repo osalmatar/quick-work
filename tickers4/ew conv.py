@@ -21,7 +21,7 @@ def process_ticker_data(df):
 # Function to load, process ew_conv, and send to PostgreSQL using psycopg2
 def load_and_process_ew_conv():
     # Load the CSV
-    ew_conv = pd.read_csv('tickers4/EW_Conv.csv')
+    ew_conv = pd.read_csv('EW_Conv.csv')
     ew_conv['Date/Time'] = pd.to_datetime(ew_conv['Date/Time'], errors='coerce')
     
     # Process the data

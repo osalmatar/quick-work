@@ -1,0 +1,8 @@
+"Buy Date","Ticker","Buy Strat","Last Alert Date","ll","Buy Price","Target","Call","Status","CMP","CMP_Date","Quantity","Hit Type","Sell Price","Broker"
+"2024-11-01","VCL.NS","BB_DC","2024-11-01","0.71","NaN","0.84","Short","Closed","0.84","2024-11-01","NaN","Target Hit","0.84","India"
+"2024-11-04","ELANGO.BO","ATRBB_DC","2024-11-04","10.62","NaN","13.53","Short","Closed","13.69","2024-11-04","NaN","Target Hit","13.53","India"
+"2024-11-04","GRATEXI.BO","BB_DT","2024-11-01","20","NaN","20","Short","Closed","21","2024-11-04","NaN","Target Hit","20","India"
+"2024-11-04","TRIOMERC.BO","BB_W","2024-11-01","1","NaN","1.14","Short","Closed","1.17","2024-11-04","NaN","Target Hit","1.14","India"
+"2024-11-05","AKSHAR.BO","BB_DC","2024-11-01","0.76","NaN","0.79","Short","Closed","0.84","2024-11-05","NaN","Target Hit","0.79","India"
+"2024-11-05","NCLRESE.BO","BB_W","2024-11-05","0.7","NaN","0.79","Short","Closed","0.8","2024-11-05","NaN","Target Hit","0.79","India"
+"2024-11-06","NATFIT.BO","LR_DT","2024-10-28","119.05","NaN","124.26","Short","Closed","133.15","2024-11-06","NaN","Target Hit","124.26","India"

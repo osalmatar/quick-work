@@ -5,14 +5,14 @@ from datetime import datetime
 # Function to load and clean multiple CSV files and process all unique tickers
 def load_and_merge_csv():
     # Load datasets
-    A = pd.read_csv('tickers2/ATR.csv')
-    B = pd.read_csv('tickers2/D_EW_B.csv')
-    C = pd.read_csv('tickers2/D_EW_S.csv')
-    D = pd.read_csv('tickers2/HHLL.csv')
-    E = pd.read_csv('tickers2/LR_Explore.csv')
-    F = pd.read_csv('tickers2/Pattern_Revv.csv')
-    G = pd.read_csv('tickers2/SCTR_Trial.csv')
-    H = pd.read_csv('tickers2/ZigZag.csv')
+    A = pd.read_csv('ATR.csv')
+    B = pd.read_csv('D_EW_B.csv')
+    C = pd.read_csv('D_EW_S.csv')
+    D = pd.read_csv('HHLL.csv')
+    E = pd.read_csv('LR_Explore.csv')
+    F = pd.read_csv('Pattern_Revv.csv')
+    G = pd.read_csv('SCTR_Trial.csv')
+    H = pd.read_csv('ZigZag.csv')
 
     # Process and clean datasets
     for df in [A, B, C, D, E, F, G, H]:
@@ -291,22 +291,22 @@ def transfer_records():
     conn.commit()
 
     # Delete the Closed records after transferring to archived_trades table
-    delete_query = '''
-    DELETE FROM trade_journal
-    WHERE "Status" = 'Closed';
-    '''
-    cur.execute(delete_query)
-    conn.commit()
+    #delete_query = '''
+    #DELETE FROM trade_journal
+    #WHERE "Status" = 'Closed';
+    #'''
+    #cur.execute(delete_query)
+    #conn.commit()
 
-    delete_query2 = '''
-    DELETE FROM trade_journal
-    WHERE "Status" = 'Close';
-    '''
-    cur.execute(delete_query2)
-    conn.commit()
+    #delete_query2 = '''
+    #DELETE FROM trade_journal
+    #WHERE "Status" = 'Close';
+    #'''
+    #cur.execute(delete_query2)
+    #conn.commit()
 
-    cur.close()
-    conn.close()
+    #cur.close()
+    #conn.close()
 
 
 # Main function to run the entire pipeline

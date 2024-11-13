@@ -5,14 +5,14 @@ from datetime import datetime
 # Function to load and clean multiple CSV files and process all unique tickers
 def load_and_merge_csv():
     # Load datasets
-    A = pd.read_csv('tickers4/ATR.csv')
-    B = pd.read_csv('tickers4/D_EW_B.csv')
-    C = pd.read_csv('tickers4/D_EW_S.csv')
-    D = pd.read_csv('tickers4/HHLL.csv')
-    E = pd.read_csv('tickers4/LR_Explore.csv')
-    F = pd.read_csv('tickers4/Pattern_Revv.csv')
-    G = pd.read_csv('tickers4/SCTR_Trial.csv')
-    H = pd.read_csv('tickers4/ZigZag.csv')
+    A = pd.read_csv('ATR.csv')
+    B = pd.read_csv('D_EW_B.csv')
+    C = pd.read_csv('D_EW_S.csv')
+    D = pd.read_csv('HHLL.csv')
+    E = pd.read_csv('LR_Explore.csv')
+    F = pd.read_csv('Pattern_Revv.csv')
+    G = pd.read_csv('SCTR_Trial.csv')
+    H = pd.read_csv('ZigZag.csv')
 
     # Process and clean datasets
     for df in [A, B, C, D, E, F, G, H]:
@@ -80,7 +80,7 @@ def load_and_merge_csv():
     # Rename and keep only the necessary columns
     final_table = final_table[['Date/Time', 'Ticker', 'Buy Strat', 'll']]
     final_table = final_table.rename(columns={'Date/Time': 'Buy Date'})
-    final_table.to_csv('tickers4/final_table.csv', index=False)
+    final_table.to_csv('final_table.csv', index=False)
 
     return final_table
 
@@ -110,7 +110,7 @@ def fetch_and_merge_cmp_and_ew_conv(final_table):
     ew_conv_df = pd.read_sql(ew_conv_query, conn)
 
     # Merge ew_conv data with the merged_table based on Ticker
-    merged_table = pd.merge(merged_table, ew_conv_df, on='Ticker', how='outer')
+    merged_table = pd.merge(merged_table, ew_conv_df, on='Ticker', how='left')
 
     # Assign 'India' to the Broker field after merging the tables
     merged_table['Broker'] = 'India'
@@ -297,22 +297,22 @@ def transfer_records():
     conn.commit()
 
     # Delete the Closed records after transferring to archived_trades table
-    delete_query = '''
-    DELETE FROM trade_journal
-    WHERE "Status" = 'Closed';
-    '''
-    cur.execute(delete_query)
-    conn.commit()
+    #delete_query = '''
+    #DELETE FROM trade_journal
+    #WHERE "Status" = 'Closed';
+    #'''
+    #cur.execute(delete_query)
+    #conn.commit()
 
-    delete_query2 = '''
-    DELETE FROM trade_journal
-    WHERE "Status" = 'Close';
-    '''
-    cur.execute(delete_query2)
-    conn.commit()
+    #delete_query2 = '''
+    #DELETE FROM trade_journal
+    #WHERE "Status" = 'Close';
+    #'''
+    #cur.execute(delete_query2)
+    #conn.commit()
 
-    cur.close()
-    conn.close()
+    #cur.close()
+    #conn.close()
 
 
 # Main function to run the entire pipeline

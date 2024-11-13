@@ -5,14 +5,14 @@ from datetime import datetime
 # Function to load and clean multiple CSV files and process all unique tickers
 def load_and_merge_csv():
     # Load datasets
-    A = pd.read_csv('Tickers3/ATR.csv')
-    B = pd.read_csv('Tickers3/D_EW_B.csv')
-    C = pd.read_csv('Tickers3/D_EW_S.csv')
-    D = pd.read_csv('Tickers3/HHLL.csv')
-    E = pd.read_csv('Tickers3/LR_Explore.csv')
-    F = pd.read_csv('Tickers3/Pattern_Revv.csv')
-    G = pd.read_csv('Tickers3/SCTR_Trial.csv')
-    H = pd.read_csv('Tickers3/ZigZag.csv')
+    A = pd.read_csv('ATR.csv')
+    B = pd.read_csv('D_EW_B.csv')
+    C = pd.read_csv('D_EW_S.csv')
+    D = pd.read_csv('HHLL.csv')
+    E = pd.read_csv('LR_Explore.csv')
+    F = pd.read_csv('Pattern_Revv.csv')
+    G = pd.read_csv('SCTR_Trial.csv')
+    H = pd.read_csv('ZigZag.csv')
 
     # Process and clean datasets
     for df in [A, B, C, D, E, F, G, H]:
