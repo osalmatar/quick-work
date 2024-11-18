@@ -1,115 +1,115 @@
-import yfinance as yf
+import os
 import pandas as pd
 import psycopg2
-from datetime import datetime   
+import io
+from datetime import datetime
 
-# Read stock tickers from Excel
-def read_stock_list(file_path):
+# Define the folder path and database connection details
+folder_path = "C:/Users/ASUS/OneDrive/Documents/GitHub/AutomatedExcelReports/quick-work/tickers6/Download"  # Update path as needed
+
+# PostgreSQL connection parameters
+conn = psycopg2.connect(
+    host="localhost",
+    database="postgres",  # Update with your database name
+    user="postgres",
+    password="St1uv9ac29!",  # Update with your password
+    port="5432"  # Default port; adjust if necessary
+)
+cursor = conn.cursor()
+
+# PostgreSQL table name
+table_name = "yfinance_data"
+
+# Function to extract Ticker name from the first line of the file
+def extract_ticker(file_path):
+    with open(file_path, 'r') as file:
+        first_line = file.readline().strip()
+    return first_line.split(" ")[-1]  # Extracts the Ticker after $NAME
+
+# Function to validate and process a single file
+def process_file(file_path, ticker):
     try:
-        stock_df = pd.read_excel(file_path)
-        return stock_df['Ticker'].tolist()
+        # Read the remaining lines after the first line
+        with open(file_path, 'r') as file:
+            lines = file.readlines()[1:]  # Skip the first line containing $NAME
+
+        # Load data into a DataFrame
+        df = pd.read_csv(
+            io.StringIO("\n".join(lines)),
+            header=None,
+            names=["CMP_Date", "Open", "High", "Low", "CMP", "Volume"]
+        )
+
+        # Ensure the number of columns is correct
+        df = df.dropna(subset=["CMP_Date", "CMP"])  # Remove rows with missing crucial fields
+
+        # Specify a fixed date format to ensure consistency
+        df["CMP_Date"] = pd.to_datetime(df["CMP_Date"], format="%Y-%m-%d", errors="coerce")
+
+        # Drop rows with invalid dates
+        df = df.dropna(subset=["CMP_Date"])
+
+        # Ensure CMP is numeric
+        df["CMP"] = pd.to_numeric(df["CMP"], errors="coerce").round(2)
+
+        # Drop rows with invalid CMP values
+        df = df.dropna(subset=["CMP"])
+
+        # Add the Ticker column
+        df["Ticker"] = ticker
+
+        # Extract the row with the latest date
+        latest_row = df.sort_values("CMP_Date", ascending=False).head(1)[["Ticker", "CMP_Date", "CMP"]]
+        return latest_row
     except Exception as e:
-        print(f"Error reading stock list: {e}")
-        return []
-
-# Fetch the latest market prices for individual tickers
-def fetch_latest_market_prices(tickers):
-    current_prices = []
-    timestamps = []
-    
-    for ticker in tickers:
-        try:
-            stock = yf.Ticker(ticker)
-            stock_data = stock.history(period='1d')  # Fetching daily data
-            
-            # Get the last available closing price and timestamp
-            last_price = stock_data['Close'].iloc[-1]
-            last_timestamp = stock_data.index[-1]  # Get the last timestamp
-            
-            current_prices.append({'Ticker': ticker, 'Current Price': last_price})
-            timestamps.append(last_timestamp)
-        except Exception as e:
-            print(f"Error fetching data for {ticker}: {e}")
-    
-    return current_prices, timestamps
+        print(f"Error processing file {file_path}: {e}")
+        return None
 
 
-# Save data to PostgreSQL
-def save_to_postgres(df, conn):
-    cur = conn.cursor()
 
-    # Drop the existing table if it exists
-    drop_table_query = '''
-    DROP TABLE IF EXISTS yfinance_data;
+# Drop the existing table if it exists
+drop_table_query = '''
+DROP TABLE IF EXISTS yfinance_data;
     '''
-    cur.execute(drop_table_query)
-    conn.commit()
+cursor.execute(drop_table_query)
+conn.commit()
 
-    # Create table with quoted column names for case sensitivity
-    create_table_query = '''
-    CREATE TABLE yfinance_data (
-        "Ticker" TEXT,   
-        "CMP" FLOAT,
-        "CMP_Date" TIMESTAMP
-    );
-    '''
-    cur.execute(create_table_query)
-    conn.commit()
+# Create table query
+create_table_query = f"""
+CREATE TABLE IF NOT EXISTS {table_name} (
+    "Ticker" TEXT,
+    "CMP_Date" TIMESTAMP,
+    "CMP" FLOAT
+);
+"""
+cursor.execute(create_table_query)
+conn.commit()
 
-    # Insert data into the PostgreSQL table
-    for index, row in df.iterrows():
-        insert_query = '''
-        INSERT INTO yfinance_data ("Ticker", "CMP", "CMP_Date") 
-        VALUES (%s, %s, %s);
-        '''
-        cur.execute(insert_query, (row['Ticker'], row['Current Price'], row['CMP Date']))
-    
-    conn.commit()
+# Process each file in the folder
+for file_name in os.listdir(folder_path):
+    file_path = os.path.join(folder_path, file_name)
 
-# Main function
-def main():
-    file_path = 'yfinance.xlsx'
-    
-    # Read stock tickers from the Excel file
-    stock_list = read_stock_list(file_path)
+    # Extract Ticker name from the first line
+    ticker = extract_ticker(file_path)
 
-    # Limit to 20 records for testing purposes
-    #stock_list = stock_list[:20]
+    # Process the file and extract the latest row
+    latest_data = process_file(file_path, ticker)
+    if latest_data is not None and not latest_data.empty:
+        for _, row in latest_data.iterrows():
+            try:
+                # Insert the data into PostgreSQL
+                insert_query = f"""
+                INSERT INTO {table_name} ("Ticker", "CMP_Date", "CMP")
+                VALUES (%s, %s, %s);
+                """
+                cursor.execute(insert_query, (row["Ticker"], row["CMP_Date"], row["CMP"]))
+                conn.commit()
+            except Exception as e:
+                print(f"Error inserting data for {ticker}: {e}")
+                conn.rollback()  # Rollback transaction to prevent blocking
 
-    if stock_list:
-        # Fetch current prices and their timestamps
-        current_prices, timestamps = fetch_latest_market_prices(stock_list)
+# Close the connection
+cursor.close()
+conn.close()
 
-        if current_prices:
-            # Convert to DataFrame for better formatting
-            prices_df = pd.DataFrame(current_prices)
-            
-            # Add CMP Date using the last timestamp for each ticker
-            prices_df['CMP Date'] = [timestamp.strftime('%Y-%m-%d %H:%M:%S') for timestamp in timestamps]
-
-            # Save to Excel
-            output_file = 'current_stock_prices.xlsx'
-            prices_df.to_excel(output_file, index=False)
-            print(f"Current prices saved to '{output_file}'.")
-
-            # Connect to PostgreSQL
-            conn = psycopg2.connect(
-                host="localhost",
-                database="postgres",
-                user="postgres",
-                password="St1uv9ac29!",
-                port="5432"
-            )
-            
-            # Save the data to PostgreSQL
-            save_to_postgres(prices_df, conn)
-            conn.close()
-
-            print("Data also saved to PostgreSQL.")
-        else:
-            print("No data to save.")
-    else:
-        print("Stock list is empty.")
-
-if __name__ == "__main__":
-    main()
+print("All files have been processed and uploaded to the PostgreSQL database.")

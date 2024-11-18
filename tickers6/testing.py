@@ -84,8 +84,8 @@ def load_and_merge_csv():
 
     return final_table
 
-# Fetch CMP from PostgreSQL yfinance table and ew_conv table (conditional selection of buy price / target), then merge with the tickers
-def fetch_and_merge_cmp_and_ew_conv(final_table):
+# Fetch CMP from PostgreSQL yfinance table and ew_conv table, then merge with the tickers
+def fetch_and_merge_from_postgresql(final_table):
     conn = psycopg2.connect(
         host="localhost",
         database="postgres",
@@ -102,27 +102,24 @@ def fetch_and_merge_cmp_and_ew_conv(final_table):
     # Merge CMP data with final_table
     merged_table = pd.merge(final_table, cmp_df, on='Ticker', how='left')
 
-    # Fetch ew_conv_table data with conditional selection for Buy Price and Target
+    # Fetch ew_conv_table data with Target field
     ew_conv_query = '''
-    SELECT 
-        "Ticker", 
-        "Last Alert Date",
-        CASE 
-            WHEN "Buy Price" > 1 THEN "Buy Price" 
-            ELSE NULL 
-        END AS "Buy Price",
-        CASE 
-            WHEN "Buy Price" <= 1 THEN "Target" 
-            ELSE NULL 
-        END AS "Target",
-        "Call", 
-        "Status"
+    SELECT "Ticker", "Last Alert Date", "Target", "Call", "Status" 
     FROM ew_conv_table
     '''
     ew_conv_df = pd.read_sql(ew_conv_query, conn)
 
     # Merge ew_conv data with the merged_table based on Ticker
     merged_table = pd.merge(merged_table, ew_conv_df, on='Ticker', how='left')
+
+    # Fetch Close from merged_tickers
+    merged_tickers_query = 'SELECT "Ticker", "Date/Time", "Close" FROM merged_tickers'
+    merged_tickers_df = pd.read_sql(merged_tickers_query, conn)
+    merged_tickers_df.rename(columns={'Date/Time':'Buy Date'}, inplace=True)
+    merged_tickers_df['Buy Date'] = pd.to_datetime(merged_tickers_df['Buy Date'], errors='coerce')
+
+    # Merge merged_tickers for Close (Buy Price) with merged_table based on ticker and date/time
+    merged_table = pd.merge(merged_table, merged_tickers_df, on = ['Ticker', 'Buy Date'], how = 'left') # left to verify, but inner SHOULD give same results
 
     # Assign 'India' to the Broker field after merging the tables
     merged_table['Broker'] = 'India'
@@ -140,11 +137,19 @@ def fetch_and_merge_cmp_and_ew_conv(final_table):
 
     conn.close()
 
-    # Calculate quantity and round floats to 2 decimal places
-    merged_table['Quantity'] = (1000 / (merged_table['Buy Price'] - merged_table['ll'])).round(2)
+    # Calculate quantity safely and avoiding division by zero
+    # Define a safe calculation function
+    def calculate_quantity(row):
+        if pd.notnull(row['Close']) and pd.notnull(row['ll']) and row['Close'] > row['ll']:
+            result = 1000 / (row['Close'] - row['ll'])
+            return round(result, 2)  # Use round() instead of .round()
+        return None  # Return None if the conditions are not met
+    # Apply the safe function to calculate Quantity
+    merged_table['Quantity'] = merged_table.apply(calculate_quantity, axis=1)
+
     merged_table['CMP'] = merged_table['CMP'].round(2)
     merged_table['ll'] = merged_table['ll'].round(2)
-    merged_table['Buy Price'] = merged_table['Buy Price'].round(2)
+    merged_table['Close'] = merged_table['Close'].round(2)
     merged_table['Target'] = merged_table['Target'].round(2)
 
     # Apply logic for Call and Status adjustments
@@ -166,23 +171,21 @@ def fetch_and_merge_cmp_and_ew_conv(final_table):
 
     return merged_table
 
-
 # Save final data to CSV and upload to PostgreSQL
 def save_and_upload(merged_table):
     # Ensure correct data types
     merged_table['ll'] = pd.to_numeric(merged_table['ll'], errors='coerce')
-    merged_table['Buy Price'] = pd.to_numeric(merged_table['Buy Price'], errors='coerce')
+    merged_table['Close'] = pd.to_numeric(merged_table['Close'], errors='coerce')
     merged_table['Target'] = pd.to_numeric(merged_table['Target'], errors='coerce')
     merged_table['CMP'] = pd.to_numeric(merged_table['CMP'], errors='coerce')
     merged_table['Quantity'] = pd.to_numeric(merged_table['Quantity'], errors='coerce')
     merged_table['Sell Price'] = pd.to_numeric(merged_table['Sell Price'], errors='coerce')
-
     merged_table['Buy Date'] = pd.to_datetime(merged_table['Buy Date']).dt.date
     merged_table['Last Alert Date'] = pd.to_datetime(merged_table['Last Alert Date']).dt.date
     merged_table['CMP_Date'] = pd.to_datetime(merged_table['CMP_Date']).dt.date
 
     # Ensure column order matches the SQL query
-    merged_table = merged_table[['Buy Date', 'Ticker', 'Buy Strat', 'Last Alert Date', 'll', 'Buy Price', 
+    merged_table = merged_table[['Buy Date', 'Ticker', 'Buy Strat', 'Last Alert Date', 'll', 'Close', 
                                'Target', 'Call', 'Status', 'CMP', 'CMP_Date', 'Quantity', 'Hit Type', 
                                'Sell Price', 'Broker']]
 
@@ -206,7 +209,7 @@ def save_and_upload(merged_table):
         "Buy Strat" TEXT,
         "Last Alert Date" DATE,
         "ll" FLOAT,
-        "Buy Price" FLOAT,
+        "Close" FLOAT,
         "Target" FLOAT,
         "Call" TEXT,
         "Status" TEXT,
@@ -225,7 +228,7 @@ def save_and_upload(merged_table):
     # Insert or update data into PostgreSQL
     for _, row in merged_table.iterrows():
         insert_query = '''
-        INSERT INTO trade_journal ("Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Buy Price", "Target", 
+        INSERT INTO trade_journal ("Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close", "Target", 
         "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", "Sell Price", "Broker") 
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT ("Buy Date", "Ticker")
@@ -233,7 +236,7 @@ def save_and_upload(merged_table):
             "Buy Strat" = EXCLUDED."Buy Strat",
             "Last Alert Date" = EXCLUDED."Last Alert Date",
             "ll" = EXCLUDED."ll",
-            "Buy Price" = EXCLUDED."Buy Price",
+            "Close" = EXCLUDED."Close",
             "Target" = EXCLUDED."Target",
             "Call" = EXCLUDED."Call",
             "Status" = EXCLUDED."Status",
@@ -250,8 +253,9 @@ def save_and_upload(merged_table):
     cur.close()
     conn.close()
 
-# Function to transfer to archived_table
-def transfer_records():
+
+# Function to transfer specific records to a new table
+def transfer_closed():
     conn = psycopg2.connect(
         host="localhost",
         database="postgres",
@@ -261,7 +265,7 @@ def transfer_records():
     )
     cur = conn.cursor()
 
-    # Create archived_trades if it doesn't exist
+    # Create the new table for archived records if it doesn't exist
     create_archive_table_query = '''
     CREATE TABLE IF NOT EXISTS archived_trades (
         "Buy Date" DATE,
@@ -269,7 +273,7 @@ def transfer_records():
         "Buy Strat" TEXT,
         "Last Alert Date" DATE,
         "ll" FLOAT,
-        "Buy Price" FLOAT,
+        "Close" FLOAT,
         "Target" FLOAT,
         "Call" TEXT,
         "Status" TEXT,
@@ -285,64 +289,137 @@ def transfer_records():
     cur.execute(create_archive_table_query)
     conn.commit()
 
-    # Fetch closed records from trade_journal and join with ew_conv to get Target
+    # Step 1: Retrieve Close for each Ticker before deletion
+    buy_price_query = '''
+    SELECT "Ticker", "Close" 
+    FROM trade_journal
+    WHERE "Close" IS NOT NULL
+    '''
+    buy_price_df = pd.read_sql(buy_price_query, conn)
+
+    # Convert buy_price_df to dictionary for easy lookup
+    close_dict = buy_price_df.set_index('Ticker')['Close'].to_dict()
+
+    # Step 2: Fetch closed records to transfer
     closed_records_query = '''
     SELECT 
-        tj."Buy Date", tj."Ticker", tj."Buy Strat", tj."Last Alert Date", tj."ll", 
-        tj."Buy Price", ew."Target", tj."Call", tj."Status", tj."CMP", tj."CMP_Date", 
-        tj."Quantity", tj."Hit Type", tj."Sell Price", tj."Broker"
-    FROM trade_journal tj
-    LEFT JOIN ew_conv_table ew ON tj."Ticker" = ew."Ticker"
-    WHERE tj."Status" = 'Closed'
+        "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", 
+        "Close", "Target", "Call", "Status", "CMP", "CMP_Date", 
+        "Quantity", "Hit Type", "Sell Price", "Broker"
+    FROM trade_journal
+    WHERE "Status" = 'Closed'
     '''
     closed_records_df = pd.read_sql(closed_records_query, conn)
-    
-    # Debugging output: Check the first few rows to verify the join results
-    print("Closed Records After Join:")
-    print(closed_records_df[['Ticker', 'Buy Price', 'Target']].head(10))
 
-    # Verify `Buy Price` and `Target` in closed_records_df before transferring to archived_trades
-    if closed_records_df['Buy Price'].isnull().any():
-        print("Warning: Missing Buy Price values in closed_records_df.")
-    if closed_records_df['Target'].isnull().any():
-        print("Warning: Missing Target values in closed_records_df.")
+    # Step 3: Fill missing Close values in closed_records_df using buy_price_dict
+    closed_records_df['Close'] = closed_records_df.apply(
+        lambda row: close_dict.get(row['Ticker'], row['Close']) 
+        if pd.isna(row['Close']) else row['Close'], axis=1
+    )
 
-    # Insert updated closed records into archived_trades with ON CONFLICT DO UPDATE
+    # Step 4: Insert updated closed records into archived_trades
     for _, row in closed_records_df.iterrows():
         insert_into_archived_query = '''
         INSERT INTO archived_trades (
-            "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Buy Price", 
+            "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close", 
             "Target", "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", 
             "Sell Price", "Broker")
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT ("Buy Date", "Ticker")
-        DO UPDATE SET 
-            "Buy Price" = COALESCE(archived_trades."Buy Price", EXCLUDED."Buy Price"),
-            "Target" = COALESCE(archived_trades."Target", EXCLUDED."Target");
+        DO NOTHING;
         '''
         cur.execute(insert_into_archived_query, tuple(row))
     conn.commit()
 
-    # Step 4: Delete the Closed records from trade_journal after transferring to archived_trades
-    #delete_query = '''
-    #DELETE FROM trade_journal
-    #WHERE "Status" = 'Closed';
-    #'''
-    #cur.execute(delete_query)
-    #conn.commit()
+    # Step 5: Delete the Closed records after transferring to archived_trades table
+    delete_query = '''
+    DELETE FROM trade_journal
+    WHERE "Status" = 'Closed';
+    '''
+    cur.execute(delete_query)
+    conn.commit()
 
-    #cur.close()
-    #conn.close()
+    cur.close()
+    conn.close()
 
+# Function to transfer specific records where the bought and sold tickers are on the same day
+def transfer_reversed():
+    conn = psycopg2.connect(
+        host="localhost",
+        database="postgres",
+        user="postgres",
+        password="St1uv9ac29!",
+        port="5432"
+    )
+    cur = conn.cursor()
 
+    # Create the new table for reversed records if it doesn't exist
+    create_archive_table_query = '''
+    CREATE TABLE IF NOT EXISTS reversed_table (
+        "Buy Date" DATE,
+        "Ticker" TEXT,
+        "Buy Strat" TEXT,
+        "Last Alert Date" DATE,
+        "ll" FLOAT,
+        "Close" FLOAT,
+        "Target" FLOAT,
+        "Call" TEXT,
+        "Status" TEXT,
+        "CMP" FLOAT,
+        "CMP_Date" DATE,
+        "Quantity" FLOAT,
+        "Hit Type" TEXT,
+        "Sell Price" FLOAT,
+        "Broker" TEXT,
+        PRIMARY KEY ("Ticker", "Buy Date")
+    );
+    '''
+    cur.execute(create_archive_table_query)
+    conn.commit()
 
+    # Fetch reversed records to transfer
+    reversed_records_query = '''
+    SELECT 
+        "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", 
+        "Close", "Target", "Call", "Status", "CMP", "CMP_Date", 
+        "Quantity", "Hit Type", "Sell Price", "Broker"
+    FROM trade_journal
+    WHERE "Buy Date" = "CMP_Date"
+    '''
+    reversed_records_df = pd.read_sql(reversed_records_query, conn)
+
+    # Insert updated closed records into archived_trades
+    for _, row in reversed_records_df.iterrows():
+        insert_into_reversed_query = '''
+        INSERT INTO reversed_trades (
+            "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close", 
+            "Target", "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", 
+            "Sell Price", "Broker")
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT ("Buy Date", "Ticker")
+        DO NOTHING;
+        '''
+        cur.execute(insert_into_reversed_query, tuple(row))
+    conn.commit()
+
+    # Step 5: Delete the Closed records after transferring to archived_trades table
+    delete_query = '''
+    DELETE FROM trade_journal
+    WHERE "Buy Date" = "CMP_Date";
+    '''
+    cur.execute(delete_query)
+    conn.commit()
+
+    cur.close()
+    conn.close()
 
 # Main function to run the entire pipeline
 def main():
     final_table = load_and_merge_csv()
-    merged_table = fetch_and_merge_cmp_and_ew_conv(final_table)
+    merged_table = fetch_and_merge_from_postgresql(final_table)
     save_and_upload(merged_table)
-    transfer_records()
+    transfer_reversed()
+    transfer_closed()
 
 if __name__ == "__main__":
     main()
