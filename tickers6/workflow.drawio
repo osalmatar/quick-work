@@ -35,7 +35,7 @@
             <mxPoint x="-5" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="9g_AEu41fhtfM2SIhQAU-7" value="postgresql ew conv" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
+        <mxCell id="9g_AEu41fhtfM2SIhQAU-7" value="postgresql ew_conv_table" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
           <mxGeometry x="360" y="210" width="60" height="80" as="geometry" />
         </mxCell>
         <mxCell id="9g_AEu41fhtfM2SIhQAU-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-8" edge="1" target="9g_AEu41fhtfM2SIhQAU-3">
@@ -43,7 +43,7 @@
             <mxPoint x="490" y="350" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="9g_AEu41fhtfM2SIhQAU-8" value="postgresql yfinance" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
+        <mxCell id="9g_AEu41fhtfM2SIhQAU-8" value="postgresql yfinance_data" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
           <mxGeometry x="360" y="310" width="60" height="80" as="geometry" />
         </mxCell>
         <mxCell id="9g_AEu41fhtfM2SIhQAU-9" value="ew conv source file" style="whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
@@ -67,7 +67,7 @@
           <mxGeometry x="520" y="500" width="120" height="130" as="geometry" />
         </mxCell>
         <mxCell id="9g_AEu41fhtfM2SIhQAU-29" value="Main functions" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="650" y="350" width="170" height="150" as="geometry" />
+          <mxGeometry x="670" y="460" width="170" height="150" as="geometry" />
         </mxCell>
         <mxCell id="9g_AEu41fhtfM2SIhQAU-30" value="Fetch ew conv, yfinance, and merged tickers (Close)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="9g_AEu41fhtfM2SIhQAU-29" vertex="1">
           <mxGeometry y="30" width="170" height="30" as="geometry" />
@@ -133,6 +133,30 @@
         <mxCell id="d_13KXShtALWo8nMmFfi-18" value="DB Containing ALL" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-10">
           <mxGeometry x="-0.0596" y="-1" relative="1" as="geometry">
             <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d_13KXShtALWo8nMmFfi-24" value="reversed_table" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+          <mxGeometry x="360" y="630" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d_13KXShtALWo8nMmFfi-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.145;exitY=1;exitDx=0;exitDy=-4.35;exitPerimeter=0;entryX=1;entryY=0;entryDx=0;entryDy=52.5;entryPerimeter=0;" edge="1" parent="1" source="9g_AEu41fhtfM2SIhQAU-28" target="d_13KXShtALWo8nMmFfi-24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d_13KXShtALWo8nMmFfi-27" value="Buy Date = Sell Date (CMP_Date)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-26">
+          <mxGeometry x="-0.1194" y="-1" relative="1" as="geometry">
+            <mxPoint x="31" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d_13KXShtALWo8nMmFfi-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.855;exitY=0;exitDx=0;exitDy=4.35;exitPerimeter=0;entryX=0.608;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="9g_AEu41fhtfM2SIhQAU-28" target="9g_AEu41fhtfM2SIhQAU-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d_13KXShtALWo8nMmFfi-29" value="Fetch tj to crease closed and reversed records&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-28">
+          <mxGeometry x="0.0926" relative="1" as="geometry">
+            <mxPoint x="87" y="-26" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d_13KXShtALWo8nMmFfi-30" value="Change target value for reversed records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-28">
+          <mxGeometry x="0.0493" y="2" relative="1" as="geometry">
+            <mxPoint x="79" as="offset" />
           </mxGeometry>
         </mxCell>
       </root>
