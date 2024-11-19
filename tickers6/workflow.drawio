@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0" version="24.8.0">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0" version="24.8.6">
   <diagram name="Page-1" id="f7qXiUDUXM9vJUY4WpnZ">
     <mxGraphModel dx="1434" dy="784" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -30,7 +30,7 @@
             <mxPoint x="490" y="250" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-22" value="Exclude Buy Price" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="9g_AEu41fhtfM2SIhQAU-20">
+        <mxCell id="d_13KXShtALWo8nMmFfi-22" value="Exclude Buy Price" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="9g_AEu41fhtfM2SIhQAU-20" vertex="1" connectable="0">
           <mxGeometry x="0.0923" relative="1" as="geometry">
             <mxPoint x="-5" as="offset" />
           </mxGeometry>
@@ -38,7 +38,7 @@
         <mxCell id="9g_AEu41fhtfM2SIhQAU-7" value="postgresql ew_conv_table" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
           <mxGeometry x="360" y="210" width="60" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="9g_AEu41fhtfM2SIhQAU-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-8" edge="1" target="9g_AEu41fhtfM2SIhQAU-3">
+        <mxCell id="9g_AEu41fhtfM2SIhQAU-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-8" target="9g_AEu41fhtfM2SIhQAU-3" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="490" y="350" as="targetPoint" />
           </mxGeometry>
@@ -81,7 +81,7 @@
         <mxCell id="9g_AEu41fhtfM2SIhQAU-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-3" target="9g_AEu41fhtfM2SIhQAU-28" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-17" value="Desired DB" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="9g_AEu41fhtfM2SIhQAU-33">
+        <mxCell id="d_13KXShtALWo8nMmFfi-17" value="Desired DB" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="9g_AEu41fhtfM2SIhQAU-33" vertex="1" connectable="0">
           <mxGeometry x="0.6229" y="1" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -89,10 +89,10 @@
         <mxCell id="Gc0xQWbeNlLE-9sP4hYX-2" value="Closed Archives" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
           <mxGeometry x="360" y="525" width="60" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.833;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1;exitY=0;exitDx=0;exitDy=75;exitPerimeter=0;" edge="1" parent="1" source="Gc0xQWbeNlLE-9sP4hYX-4" target="9g_AEu41fhtfM2SIhQAU-3">
+        <mxCell id="d_13KXShtALWo8nMmFfi-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.833;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1;exitY=0;exitDx=0;exitDy=75;exitPerimeter=0;" parent="1" source="Gc0xQWbeNlLE-9sP4hYX-4" target="9g_AEu41fhtfM2SIhQAU-3" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-19" value="Take only Close as Buy Price" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-7">
+        <mxCell id="d_13KXShtALWo8nMmFfi-19" value="Take only Close as Buy Price" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-7" vertex="1" connectable="0">
           <mxGeometry x="0.2784" y="1" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -103,7 +103,7 @@
         <mxCell id="Gc0xQWbeNlLE-9sP4hYX-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-28" target="Gc0xQWbeNlLE-9sP4hYX-2" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-16" value="Closed Records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="Gc0xQWbeNlLE-9sP4hYX-10">
+        <mxCell id="d_13KXShtALWo8nMmFfi-16" value="Closed Records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="Gc0xQWbeNlLE-9sP4hYX-10" vertex="1" connectable="0">
           <mxGeometry x="0.02" y="2" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -117,46 +117,63 @@
         <mxCell id="Gc0xQWbeNlLE-9sP4hYX-18" value="download folder" style="whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="20" y="310" width="80" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="9g_AEu41fhtfM2SIhQAU-25" target="9g_AEu41fhtfM2SIhQAU-3">
+        <mxCell id="d_13KXShtALWo8nMmFfi-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-25" target="9g_AEu41fhtfM2SIhQAU-3" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="680" y="190" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-20" value="Take everything except Buy Price" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-5">
+        <mxCell id="d_13KXShtALWo8nMmFfi-20" value="Take everything except Buy Price" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-5" vertex="1" connectable="0">
           <mxGeometry x="-0.0008" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.01;entryY=0.591;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="Gc0xQWbeNlLE-9sP4hYX-17" target="Gc0xQWbeNlLE-9sP4hYX-4">
+        <mxCell id="d_13KXShtALWo8nMmFfi-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.01;entryY=0.591;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="Gc0xQWbeNlLE-9sP4hYX-17" target="Gc0xQWbeNlLE-9sP4hYX-4" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-18" value="DB Containing ALL" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-10">
+        <mxCell id="d_13KXShtALWo8nMmFfi-18" value="DB Containing ALL" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-10" vertex="1" connectable="0">
           <mxGeometry x="-0.0596" y="-1" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-24" value="reversed_table" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
-          <mxGeometry x="360" y="630" width="60" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.145;exitY=1;exitDx=0;exitDy=-4.35;exitPerimeter=0;entryX=1;entryY=0;entryDx=0;entryDy=52.5;entryPerimeter=0;" edge="1" parent="1" source="9g_AEu41fhtfM2SIhQAU-28" target="d_13KXShtALWo8nMmFfi-24">
+        <mxCell id="xx_cJj7TupkbCxLRunbi-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="d_13KXShtALWo8nMmFfi-24" target="Gc0xQWbeNlLE-9sP4hYX-2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-27" value="Buy Date = Sell Date (CMP_Date)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-26">
+        <mxCell id="d_13KXShtALWo8nMmFfi-24" value="reversed_table" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
+          <mxGeometry x="360" y="650" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d_13KXShtALWo8nMmFfi-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.145;exitY=1;exitDx=0;exitDy=-4.35;exitPerimeter=0;entryX=1;entryY=0;entryDx=0;entryDy=52.5;entryPerimeter=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-28" target="d_13KXShtALWo8nMmFfi-24" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d_13KXShtALWo8nMmFfi-27" value="Buy Date = Sell Date (CMP_Date)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-26" vertex="1" connectable="0">
           <mxGeometry x="-0.1194" y="-1" relative="1" as="geometry">
             <mxPoint x="31" y="5" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.855;exitY=0;exitDx=0;exitDy=4.35;exitPerimeter=0;entryX=0.608;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="9g_AEu41fhtfM2SIhQAU-28" target="9g_AEu41fhtfM2SIhQAU-3">
+        <mxCell id="d_13KXShtALWo8nMmFfi-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.855;exitY=0;exitDx=0;exitDy=4.35;exitPerimeter=0;entryX=0.608;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-28" target="9g_AEu41fhtfM2SIhQAU-3" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-29" value="Fetch tj to crease closed and reversed records&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-28">
+        <mxCell id="d_13KXShtALWo8nMmFfi-29" value="Fetch tj to crease closed and reversed records&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-28" vertex="1" connectable="0">
           <mxGeometry x="0.0926" relative="1" as="geometry">
             <mxPoint x="87" y="-26" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-30" value="Change target value for reversed records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-28">
+        <mxCell id="d_13KXShtALWo8nMmFfi-30" value="Change target value for reversed records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-28" vertex="1" connectable="0">
           <mxGeometry x="0.0493" y="2" relative="1" as="geometry">
             <mxPoint x="79" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xx_cJj7TupkbCxLRunbi-1" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0;exitY=0;exitDx=0;exitDy=27.5;exitPerimeter=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="d_13KXShtALWo8nMmFfi-24" target="9g_AEu41fhtfM2SIhQAU-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="270" y="670" as="sourcePoint" />
+            <mxPoint x="320" y="620" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="230" y="678" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xx_cJj7TupkbCxLRunbi-2" value="Change status to open and send target &amp;amp; ISL hits" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="xx_cJj7TupkbCxLRunbi-1">
+          <mxGeometry x="0.2849" y="1" relative="1" as="geometry">
+            <mxPoint x="-83" y="146" as="offset" />
           </mxGeometry>
         </mxCell>
       </root>
