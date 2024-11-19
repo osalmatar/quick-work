@@ -384,7 +384,7 @@ def transfer_reversed():
         "Close", "Target", "Call", "Status", "CMP", "CMP_Date", 
         "Quantity", "Hit Type", "Sell Price", "Broker"
     FROM trade_journal
-    WHERE "Buy Date" = "CMP_Date"
+    WHERE "Buy Date" = "CMP_Date";
     '''
     reversed_records_df = pd.read_sql(reversed_records_query, conn)
 
