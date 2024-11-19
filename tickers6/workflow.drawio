@@ -138,6 +138,11 @@
         <mxCell id="xx_cJj7TupkbCxLRunbi-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="d_13KXShtALWo8nMmFfi-24" target="Gc0xQWbeNlLE-9sP4hYX-2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="xx_cJj7TupkbCxLRunbi-4" value="Transfer closed records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="xx_cJj7TupkbCxLRunbi-3">
+          <mxGeometry x="-0.1111" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="d_13KXShtALWo8nMmFfi-24" value="reversed_table" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
           <mxGeometry x="360" y="650" width="60" height="80" as="geometry" />
         </mxCell>
@@ -146,34 +151,25 @@
         </mxCell>
         <mxCell id="d_13KXShtALWo8nMmFfi-27" value="Buy Date = Sell Date (CMP_Date)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-26" vertex="1" connectable="0">
           <mxGeometry x="-0.1194" y="-1" relative="1" as="geometry">
-            <mxPoint x="31" y="5" as="offset" />
+            <mxPoint x="51" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xx_cJj7TupkbCxLRunbi-5" value="Open the records after transferring" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-26">
+          <mxGeometry x="0.1813" y="1" relative="1" as="geometry">
+            <mxPoint x="49" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xx_cJj7TupkbCxLRunbi-7" value="Adjust Target value and check for Target and ISL hits" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-26">
+          <mxGeometry x="0.3666" y="1" relative="1" as="geometry">
+            <mxPoint x="89" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="d_13KXShtALWo8nMmFfi-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.855;exitY=0;exitDx=0;exitDy=4.35;exitPerimeter=0;entryX=0.608;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-28" target="9g_AEu41fhtfM2SIhQAU-3" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-29" value="Fetch tj to crease closed and reversed records&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-28" vertex="1" connectable="0">
+        <mxCell id="d_13KXShtALWo8nMmFfi-29" value="Fetch tj to create closed and reversed records&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-28" vertex="1" connectable="0">
           <mxGeometry x="0.0926" relative="1" as="geometry">
             <mxPoint x="87" y="-26" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="d_13KXShtALWo8nMmFfi-30" value="Change target value for reversed records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-28" vertex="1" connectable="0">
-          <mxGeometry x="0.0493" y="2" relative="1" as="geometry">
-            <mxPoint x="79" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="xx_cJj7TupkbCxLRunbi-1" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0;exitY=0;exitDx=0;exitDy=27.5;exitPerimeter=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="d_13KXShtALWo8nMmFfi-24" target="9g_AEu41fhtfM2SIhQAU-3">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="270" y="670" as="sourcePoint" />
-            <mxPoint x="320" y="620" as="targetPoint" />
-            <Array as="points">
-              <mxPoint x="230" y="678" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="xx_cJj7TupkbCxLRunbi-2" value="Change status to open and send target &amp;amp; ISL hits" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="xx_cJj7TupkbCxLRunbi-1">
-          <mxGeometry x="0.2849" y="1" relative="1" as="geometry">
-            <mxPoint x="-83" y="146" as="offset" />
           </mxGeometry>
         </mxCell>
       </root>
