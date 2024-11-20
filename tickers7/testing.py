@@ -478,6 +478,53 @@ def transfer_reversed():
     conn.close()
 
 
+# Create a new function that imports data from ew conv, trade journal, and reversed table, and outputs 2 excel files (buy and sell)
+# Function finds the tickers in the last 2 days alert from ew conv that also exist in TJ or reversed table.
+def fetch_and_export_to_excel():
+    conn = psycopg2.connect(
+        host="localhost",
+        database="postgres",
+        user="postgres",
+        password="St1uv9ac29!",
+        port="5432"
+    )
+    cur = conn.cursor()
+
+    # Fetch Ticker from Trade_Journal
+    tj_ticker_query = ''' SELECT "Ticker", "Broker" FROM trade_journal'''
+    tj_ticker_df = pd.read_sql(tj_ticker_query, conn)
+
+    # Fetch Tickers from reversed_table
+    reversed_query = '''SELECT "Ticker", "Broker" from reversed_table'''
+    reversed_ticker_df = pd.read_sql(reversed_query, conn)
+
+    tj_reversed_ticker = pd.concat([tj_ticker_df, reversed_ticker_df]).drop_duplicates()
+
+    # Fetch from EW_CONV
+    # BUY
+    ew_query_buy = '''SELECT "Ticker", "Last Alert Date", "Buy Price"
+    FROM ew_conv_table WHERE "Target" = 'NaN' '''
+    ew_conv_buy_df = pd.read_sql(ew_query_buy, conn)
+
+    last_two_dates_buy = ew_conv_buy_df['Last Alert Date'].nlargest(2)
+    ew_conv_buy_df = ew_conv_buy_df[ew_conv_buy_df['Last Alert Date'].isin(last_two_dates_buy)]
+    merge_buy = pd.merge(ew_conv_buy_df, tj_reversed_ticker, on='Ticker', how='left')
+
+    # SELL
+    ew_query_sell = '''SELECT "Ticker", "Last Alert Date", "Target"
+    FROM ew_conv_table WHERE "Buy Price" = 'NaN' '''
+    ew_conv_sell_df = pd.read_sql(ew_query_sell, conn)
+
+    last_two_dates_sell = ew_conv_sell_df['Last Alert Date'].nlargest(2)
+    ew_conv_sell_df = ew_conv_sell_df[ew_conv_sell_df['Last Alert Date'].isin(last_two_dates_sell)]
+    merge_sell = pd.merge(ew_conv_sell_df, tj_reversed_ticker, on='Ticker', how='left')
+
+    # Write the sheets to excel
+    with pd.ExcelWriter('ew_conv_buy_and_sell_today_and_yesterday.xlsx') as writer:
+        merge_buy.to_excel(writer, sheet_name='ew_conv_buy', index=False)
+        merge_sell.to_excel(writer, sheet_name='ew_conv_sell', index=False)
+
+
 
 # Main function to run the entire pipeline
 def main():
@@ -486,6 +533,7 @@ def main():
     save_and_upload(merged_table)
     transfer_reversed()
     transfer_closed()
+    fetch_and_export_to_excel()
 
 if __name__ == "__main__":
     main()
