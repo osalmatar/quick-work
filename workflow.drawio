@@ -10,6 +10,14 @@
         <mxCell id="9g_AEu41fhtfM2SIhQAU-2" value="import yfinance py" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="170" y="320" width="120" height="60" as="geometry" />
         </mxCell>
+        <mxCell id="H_QMuTr9eTEAzUCj69De-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="9g_AEu41fhtfM2SIhQAU-3" target="H_QMuTr9eTEAzUCj69De-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="H_QMuTr9eTEAzUCj69De-6" value="tickers last 2 days that exist in ew_conv and TJ/reversed table" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="H_QMuTr9eTEAzUCj69De-5">
+          <mxGeometry x="-0.1333" y="-1" relative="1" as="geometry">
+            <mxPoint x="-129" y="-20" as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="9g_AEu41fhtfM2SIhQAU-3" value="testing.py&amp;nbsp;&lt;div&gt;(MAIN FILE)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="550" y="260" width="120" height="60" as="geometry" />
         </mxCell>
@@ -64,10 +72,10 @@
           <mxGeometry x="20" y="70" width="80" height="80" as="geometry" />
         </mxCell>
         <mxCell id="9g_AEu41fhtfM2SIhQAU-28" value="postgresql Trade Journal&amp;nbsp;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
-          <mxGeometry x="520" y="500" width="120" height="130" as="geometry" />
+          <mxGeometry x="520" y="550" width="120" height="130" as="geometry" />
         </mxCell>
         <mxCell id="9g_AEu41fhtfM2SIhQAU-29" value="Main functions" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="670" y="460" width="170" height="150" as="geometry" />
+          <mxGeometry x="670" y="510" width="170" height="150" as="geometry" />
         </mxCell>
         <mxCell id="9g_AEu41fhtfM2SIhQAU-30" value="Fetch ew conv, yfinance, and merged tickers (Close)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="9g_AEu41fhtfM2SIhQAU-29" vertex="1">
           <mxGeometry y="30" width="170" height="30" as="geometry" />
@@ -87,7 +95,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="Gc0xQWbeNlLE-9sP4hYX-2" value="Closed Archives" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
-          <mxGeometry x="360" y="525" width="60" height="80" as="geometry" />
+          <mxGeometry x="360" y="575" width="60" height="80" as="geometry" />
         </mxCell>
         <mxCell id="d_13KXShtALWo8nMmFfi-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.833;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1;exitY=0;exitDx=0;exitDy=75;exitPerimeter=0;" parent="1" source="Gc0xQWbeNlLE-9sP4hYX-4" target="9g_AEu41fhtfM2SIhQAU-3" edge="1">
           <mxGeometry relative="1" as="geometry" />
@@ -135,16 +143,16 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="xx_cJj7TupkbCxLRunbi-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="d_13KXShtALWo8nMmFfi-24" target="Gc0xQWbeNlLE-9sP4hYX-2">
+        <mxCell id="xx_cJj7TupkbCxLRunbi-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="d_13KXShtALWo8nMmFfi-24" target="Gc0xQWbeNlLE-9sP4hYX-2" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="xx_cJj7TupkbCxLRunbi-4" value="Transfer closed records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="xx_cJj7TupkbCxLRunbi-3">
+        <mxCell id="xx_cJj7TupkbCxLRunbi-4" value="Transfer closed records" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="xx_cJj7TupkbCxLRunbi-3" vertex="1" connectable="0">
           <mxGeometry x="-0.1111" y="2" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="d_13KXShtALWo8nMmFfi-24" value="reversed_table" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
-          <mxGeometry x="360" y="650" width="60" height="80" as="geometry" />
+          <mxGeometry x="360" y="700" width="60" height="80" as="geometry" />
         </mxCell>
         <mxCell id="d_13KXShtALWo8nMmFfi-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.145;exitY=1;exitDx=0;exitDy=-4.35;exitPerimeter=0;entryX=1;entryY=0;entryDx=0;entryDy=52.5;entryPerimeter=0;" parent="1" source="9g_AEu41fhtfM2SIhQAU-28" target="d_13KXShtALWo8nMmFfi-24" edge="1">
           <mxGeometry relative="1" as="geometry" />
@@ -154,12 +162,12 @@
             <mxPoint x="51" y="5" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="xx_cJj7TupkbCxLRunbi-5" value="Open the records after transferring" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-26">
+        <mxCell id="xx_cJj7TupkbCxLRunbi-5" value="Open the records after transferring" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-26" vertex="1" connectable="0">
           <mxGeometry x="0.1813" y="1" relative="1" as="geometry">
             <mxPoint x="49" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="xx_cJj7TupkbCxLRunbi-7" value="Adjust Target value and check for Target and ISL hits" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="d_13KXShtALWo8nMmFfi-26">
+        <mxCell id="xx_cJj7TupkbCxLRunbi-7" value="Adjust Target value and check for Target and ISL hits" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="d_13KXShtALWo8nMmFfi-26" vertex="1" connectable="0">
           <mxGeometry x="0.3666" y="1" relative="1" as="geometry">
             <mxPoint x="89" as="offset" />
           </mxGeometry>
@@ -171,6 +179,9 @@
           <mxGeometry x="0.0926" relative="1" as="geometry">
             <mxPoint x="87" y="-26" as="offset" />
           </mxGeometry>
+        </mxCell>
+        <mxCell id="H_QMuTr9eTEAzUCj69De-1" value="ew_conv_buy_&lt;div&gt;and_sell_today&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;_and_yesterday&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;.xlsx&lt;/span&gt;&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="335" y="450" width="110" height="110" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
