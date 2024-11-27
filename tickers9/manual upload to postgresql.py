@@ -1,6 +1,7 @@
 import pandas as pd
 import psycopg2
 from psycopg2 import sql
+from sqlalchemy import create_engine
 
 # Function to connect to PostgreSQL
 def connect_to_db():
@@ -29,11 +30,41 @@ def table_exists(conn, table_name):
         cur.execute(query, (table_name,))
         return cur.fetchone()[0]
 
+# Function to get table schema from PostgreSQL
+def get_table_schema(conn, table_name):
+    query = sql.SQL("""
+        SELECT column_name, data_type
+        FROM information_schema.columns
+        WHERE table_name = %s
+    """)
+    with conn.cursor() as cur:
+        cur.execute(query, (table_name,))
+        return cur.fetchall()
+
+# Function to enforce data types based on table schema
+def enforce_data_types(data, schema):
+    type_map = {
+        'integer': 'Int64',  # Pandas nullable integer
+        'bigint': 'Int64',
+        'smallint': 'Int64',
+        'real': 'float',
+        'double precision': 'float',
+        'text': 'string',
+        'character varying': 'string',
+        'boolean': 'boolean',
+        'date': 'datetime64[ns]',
+        'timestamp without time zone': 'datetime64[ns]',
+        'timestamp with time zone': 'datetime64[ns]'
+    }
+    for col, dtype in schema:
+        if col in data.columns:
+            pandas_dtype = type_map.get(dtype, 'object')  # Default to object for unsupported types
+            data[col] = data[col].astype(pandas_dtype, errors='ignore')
+    return data
+
 # Function to append data without duplicates
 def append_data(conn, table_name, data):
-    from sqlalchemy import create_engine
-
-    # Create SQLAlchemy engine from the psycopg2 connection
+    # Create SQLAlchemy engine from psycopg2 connection details
     engine = create_engine('postgresql+psycopg2://postgres:St1uv9ac29!@localhost:5432/postgres')
 
     # Load existing data from the table using SQLAlchemy engine
@@ -56,7 +87,6 @@ def append_data(conn, table_name, data):
                 f
             )
         conn.commit()
-
 
 # Function to create a table based on the DataFrame structure
 def create_table(conn, table_name, data):
@@ -101,7 +131,9 @@ def main():
     try:
         # Check if table exists
         if table_exists(conn, table_name):
-            print(f"Table '{table_name}' exists. Appending data...")
+            print(f"Table '{table_name}' exists. Enforcing data types and appending data...")
+            schema = get_table_schema(conn, table_name)  # Get existing table schema
+            data = enforce_data_types(data, schema)  # Coerce data types
             append_data(conn, table_name, data)
         else:
             print(f"Table '{table_name}' does not exist. Creating table...")
@@ -109,7 +141,6 @@ def main():
             print(f"Table '{table_name}' created and data inserted.")
     finally:
         conn.close()
-
 
 if __name__ == '__main__':
     main()
