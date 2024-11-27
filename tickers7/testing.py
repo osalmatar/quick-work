@@ -227,10 +227,11 @@ def save_and_upload(merged_table):
 
     # Insert or update data into PostgreSQL
     for _, row in merged_table.iterrows():
-        insert_query = '''
+        # Insert or update for composite key ("Buy Date", "Ticker")
+        insert_query_composite = '''
         INSERT INTO trade_journal ("Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close", "Target", 
-        "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", "Sell Price", "Broker") 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        "Call", "Status", "Quantity", "Hit Type", "Sell Price", "Broker") 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT ("Buy Date", "Ticker")
         DO UPDATE SET 
             "Buy Strat" = EXCLUDED."Buy Strat",
@@ -240,15 +241,43 @@ def save_and_upload(merged_table):
             "Target" = EXCLUDED."Target",
             "Call" = EXCLUDED."Call",
             "Status" = EXCLUDED."Status",
-            "CMP" = EXCLUDED."CMP",
-            "CMP_Date" = EXCLUDED."CMP_Date",
             "Quantity" = EXCLUDED."Quantity",
             "Hit Type" = EXCLUDED."Hit Type",
             "Sell Price" = EXCLUDED."Sell Price",
             "Broker" = EXCLUDED."Broker";
         '''
-        cur.execute(insert_query, tuple(row))
+        cur.execute(insert_query_composite, (
+            row["Buy Date"], row["Ticker"], row["Buy Strat"], row["Last Alert Date"], row["ll"], row["Close"], 
+            row["Target"], row["Call"], row["Status"], row["Quantity"], 
+            row["Hit Type"], row["Sell Price"], row["Broker"]
+    ))
+
+    # Insert or update for "CMP" and "CMP_Date" based on "Ticker" only
+    update_query_cmp = '''
+    UPDATE trade_journal 
+    SET
+        "CMP" = y."CMP",
+        "CMP_Date" = y."CMP_Date"
+    FROM yfinance_data y
+    WHERE trade_journal."Ticker" = y."Ticker"
+    '''
+    cur.execute(update_query_cmp)
     
+    # Apply logic for Call and Status adjustments
+    def adjust_call_status(row):
+        # Check if CMP < ll to hit ISL
+        if pd.notnull(row['CMP']) and pd.notnull(row['ll']) and row['CMP'] < row['ll']:
+            return 'Short', 'Closed', 'ISL Hit', round(row['ll'], 2)
+        # Check if CMP <= Target to hit Target from ew_conv_table
+        elif pd.notnull(row['CMP']) and pd.notnull(row['Target']) and row['CMP'] <= row['Target']:
+            return 'Short', 'Closed', 'Target Hit', round(row['Target'], 2)
+        # If conditions are not met, return original Call, Status, Hit Type, and Sell Price as None
+        return row['Call'], row['Status'], None, None
+
+    merged_table[['Call', 'Status', 'Hit Type', 'Sell Price']] = merged_table.apply(
+        lambda row: adjust_call_status(row), axis=1, result_type='expand'
+    )
+
     conn.commit()
     cur.close()
     conn.close()
@@ -381,7 +410,7 @@ def transfer_reversed():
     fetch_records_query = '''
     SELECT 
         "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", 
-        "Close", "Target", "Call", "Status", "CMP", "CMP_Date", 
+        "Close", "Target", "Call", "Status", "CMP", "CMP_Date",
         "Quantity", "Hit Type", "Sell Price", "Broker"
     FROM trade_journal
     WHERE "Buy Date" = "CMP_Date" AND "Status" = 'Closed';
@@ -394,9 +423,25 @@ def transfer_reversed():
     # Recalculate Risk Amount and Target for all records
     records_df['Risk Amount'] = records_df['Close'] - records_df['ll']
     records_df['Target'] = (2 * records_df['Risk Amount']) + records_df['Close']
-
-    # Round Target to 2 decimal places
     records_df['Target'] = records_df['Target'].round(2)
+
+    # Insert updated records into reversed_table
+    for _, row in records_df.iterrows():
+        insert_into_reversed_query = '''
+        INSERT INTO reversed_table (
+            "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close", 
+            "Target", "Call", "Status", "Quantity", "Hit Type", 
+            "Sell Price", "Broker")
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT ("Buy Date", "Ticker")
+        DO NOTHING;
+        '''
+        cur.execute(insert_into_reversed_query, (
+            row["Buy Date"], row["Ticker"], row["Buy Strat"], row["Last Alert Date"],
+            row["ll"], row["Close"], row["Target"], row["Call"], row["Status"],
+            row["Quantity"], row["Hit Type"], row["Sell Price"], row["Broker"]
+        ))
+    conn.commit()
 
     # Function to adjust Call, Status, Hit Type, and Sell Price using the updated Target
     def adjust_call_status(row):
@@ -417,27 +462,25 @@ def transfer_reversed():
     # Round Sell Price to 2 decimal places
     records_df['Sell Price'] = records_df['Sell Price'].round(2)
 
-    # Separate Closed records to transfer to archived_trades
-    to_archive = records_df[records_df["Status"] == "Closed"]
-
-    # Insert updated records into reversed_table
+    # Update reversed_table with adjusted values
     for _, row in records_df.iterrows():
-        insert_into_reversed_query = '''
-        INSERT INTO reversed_table (
-            "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close", 
-            "Target", "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", 
-            "Sell Price", "Broker")
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT ("Buy Date", "Ticker")
-        DO NOTHING;
+        update_adjusted_values_query = '''
+        UPDATE reversed_table
+        SET 
+            "Call" = %s,
+            "Status" = %s,
+            "Hit Type" = %s,
+            "Sell Price" = %s
+        WHERE "Buy Date" = %s AND "Ticker" = %s;
         '''
-        cur.execute(insert_into_reversed_query, (
-            row["Buy Date"], row["Ticker"], row["Buy Strat"], row["Last Alert Date"],
-            row["ll"], row["Close"], row["Target"], row["Call"], row["Status"],
-            row["CMP"], row["CMP_Date"], row["Quantity"], row["Hit Type"],
-            row["Sell Price"], row["Broker"]
+        cur.execute(update_adjusted_values_query, (
+            row["Call"], row["Status"], row["Hit Type"], row["Sell Price"],
+            row["Buy Date"], row["Ticker"]
         ))
     conn.commit()
+
+    # Separate Closed records to transfer to archived_trades
+    to_archive = records_df[records_df["Status"] == "Closed"]
 
     # Insert Closed records into archived_trades
     for _, row in to_archive.iterrows():
@@ -476,6 +519,7 @@ def transfer_reversed():
 
     cur.close()
     conn.close()
+
 
 
 # Create a new function that imports data from ew conv, trade journal, and reversed table, and outputs 2 excel files (buy and sell)
@@ -525,13 +569,125 @@ def fetch_and_export_to_excel():
         merge_sell.to_excel(writer, sheet_name='ew_conv_sell', index=False)
 
 
+# General function to update a table using adjust_call_status
+def update_table_with_adjusted_status(table_name, conn):
+    cur = conn.cursor()
+
+    # Fetch all records from the specified table
+    fetch_query = f'''
+    SELECT 
+        "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", 
+        "Close", "Target", "Call", "Status", "CMP", "CMP_Date",
+        "Quantity", "Hit Type", "Sell Price", "Broker"
+    FROM {table_name};
+    '''
+    records_df = pd.read_sql(fetch_query, conn)
+
+    # Apply adjust_call_status logic
+    def adjust_call_status(row):
+        if pd.notnull(row['CMP']) and pd.notnull(row['ll']) and row['CMP'] < row['ll']:
+            return 'Short', 'Closed', 'ISL Hit', round(row['ll'], 2)
+        elif pd.notnull(row['CMP']) and pd.notnull(row['Target']) and row['CMP'] >= row['Target']:
+            return 'Short', 'Closed', 'Target Hit', round(row['Target'], 2)
+        return row['Call'], row['Status'], None, None
+
+    records_df[['Call', 'Status', 'Hit Type', 'Sell Price']] = records_df.apply(
+        lambda row: adjust_call_status(row), axis=1, result_type='expand'
+    )
+    records_df['Sell Price'] = records_df['Sell Price'].round(2)
+
+    # Update the table with adjusted values
+    for _, row in records_df.iterrows():
+        update_query = f'''
+        UPDATE {table_name}
+        SET 
+            "Call" = %s,
+            "Status" = %s,
+            "Hit Type" = %s,
+            "Sell Price" = %s
+        WHERE "Buy Date" = %s AND "Ticker" = %s;
+        '''
+        cur.execute(update_query, (
+            row["Call"], row["Status"], row["Hit Type"], row["Sell Price"],
+            row["Buy Date"], row["Ticker"]
+        ))
+    conn.commit()
+    cur.close()
+
+# Functions for specific tables
+def update_trade_journal():
+    conn = psycopg2.connect(
+        host="localhost",
+        database="postgres",
+        user="postgres",
+        password="St1uv9ac29!",
+        port="5432"
+    )
+    update_table_with_adjusted_status('trade_journal', conn)
+    conn.close()
+
+def update_reversed_table():
+    conn = psycopg2.connect(
+        host="localhost",
+        database="postgres",
+        user="postgres",
+        password="St1uv9ac29!",
+        port="5432"
+    )
+    cur = conn.cursor()
+    update_table_with_adjusted_status('reversed_table', conn)
+
+    # Fetch updated reversed table
+    updated_reversed_table_query = '''
+    SELECT 
+        "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close",
+        "Target", "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type",
+        "Sell Price", "Broker" FROM reversed_table
+        '''
+
+    updated_records_df = pd.read_sql(updated_reversed_table_query, conn)
+
+    # Separate Closed records to transfer to archived_trades
+    to_archive = updated_records_df[updated_records_df["Status"] == "Closed"]
+    
+    # Insert Closed records into archived_trades
+    for _, row in to_archive.iterrows():
+        insert_into_archive_query = '''
+        INSERT INTO archived_trades (
+            "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close", 
+            "Target", "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", 
+            "Sell Price", "Broker")
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT ("Buy Date", "Ticker")
+        DO NOTHING;
+        '''
+        cur.execute(insert_into_archive_query, (
+            row["Buy Date"], row["Ticker"], row["Buy Strat"], row["Last Alert Date"],
+            row["ll"], row["Close"], row["Target"], row["Call"], row["Status"],
+            row["CMP"], row["CMP_Date"], row["Quantity"], row["Hit Type"],
+            row["Sell Price"], row["Broker"]
+        ))
+    conn.commit()
+    # Delete the Closed records from reversed_table after archiving
+    delete_query = '''
+    DELETE FROM reversed_table
+    WHERE "Status" = 'Closed';
+    '''
+    cur.execute(delete_query)
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
 
 # Main function to run the entire pipeline
 def main():
     final_table = load_and_merge_csv()
     merged_table = fetch_and_merge_from_postgresql(final_table)
     save_and_upload(merged_table)
+    update_trade_journal()
     transfer_reversed()
+    update_reversed_table()
     transfer_closed()
     fetch_and_export_to_excel()
 
