@@ -5,7 +5,7 @@ import io
 from datetime import datetime
 
 # Define the folder path and database connection details
-folder_path = "C:/Users/ASUS/OneDrive/Documents/GitHub/AutomatedExcelReports/quick-work/tickers8/Download"  # Update path as needed
+folder_path = "C:/Users/ASUS/OneDrive/Documents/GitHub/AutomatedExcelReports/quick-work/271124/Download"  # Update path as needed
 
 # PostgreSQL connection parameters
 conn = psycopg2.connect(

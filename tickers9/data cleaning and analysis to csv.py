@@ -21,14 +21,14 @@ def process_ticker_data(df):
 
 # Function to load and clean multiple CSV files
 def load_and_merge_csv():
-    A = pd.read_csv('ATR.csv', on_bad_lines='skip')
-    B = pd.read_csv('D_EW_B.csv', on_bad_lines='skip')
-    C = pd.read_csv('D_EW_S.csv', on_bad_lines='skip')
-    D = pd.read_csv('HHLL.csv', on_bad_lines='skip')
-    E = pd.read_csv('LR_Explore.csv', on_bad_lines='skip')
-    F = pd.read_csv('Pattern_Revv.csv', on_bad_lines='skip')
-    G = pd.read_csv('SCTR_Trial.csv', on_bad_lines='skip')
-    H = pd.read_csv('ZigZag.csv', on_bad_lines='skip')
+    A = pd.read_csv('ATR.csv')
+    B = pd.read_csv('D_EW_B.csv')
+    C = pd.read_csv('D_EW_S.csv')
+    D = pd.read_csv('HHLL.csv')
+    E = pd.read_csv('LR_Explore.csv')
+    F = pd.read_csv('Pattern_Revv.csv')
+    G = pd.read_csv('SCTR_Trial.csv')
+    H = pd.read_csv('ZigZag.csv')
 
     # Ensure Date/Time is properly parsed as datetime
     for df in [A, B, C, D, E, F, G, H]:
@@ -142,7 +142,7 @@ def load_and_merge_csv():
 # Function to load and process ew_conv, process it, and output separately
 def load_and_process_ew_conv():
     # Load EW_Conv and ensure 'Date/Time' is datetime
-    ew_conv = pd.read_csv('EW_Conv.csv', on_bad_lines='skip')
+    ew_conv = pd.read_csv('EW_Conv.csv')
     ew_conv['Date/Time'] = pd.to_datetime(ew_conv['Date/Time'], errors='coerce')
 
     # Process the ew_conv dataset using the process_ticker_data function
@@ -155,9 +155,7 @@ def load_and_process_ew_conv():
 
 
 def save_and_upload(df_cleaned_merged_tickers):
-    # Ensure correct data types of integers
-    df_cleaned_merged_tickers.to_csv('df_cleaned_merged_first_step.csv', index=False)
-    
+    df_cleaned_merged_tickers.to_csv('cleaned_merged_tickers_check.csv', index=False)
     df_cleaned_merged_tickers['Close'] = pd.to_numeric(df_cleaned_merged_tickers['Close'], errors='coerce')
     df_cleaned_merged_tickers['ll'] = pd.to_numeric(df_cleaned_merged_tickers['ll'], errors='coerce')
     df_cleaned_merged_tickers['Current_Price'] = pd.to_numeric(df_cleaned_merged_tickers['Current_Price'], errors='coerce')

@@ -730,10 +730,10 @@ def main():
     final_table = load_and_merge_csv()
     merged_table = fetch_and_merge_from_postgresql(final_table)
     save_and_upload(merged_table)
+    transfer_closed()
     update_trade_journal()
     transfer_reversed()
     update_reversed_table()
-    transfer_closed()
     fetch_and_export_to_excel()
 
 if __name__ == "__main__":
