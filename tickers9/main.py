@@ -417,47 +417,45 @@ def transfer_reversed():
     '''
     records_df = pd.read_sql(fetch_records_query, conn)
 
-    records_df['Status'] = 'Open'
-    records_df['Call'] = 'Long'
+    # Ensure required columns exist
+    required_columns = ['CMP', 'll', 'Target', 'Call', 'Status']
+    missing_columns = [col for col in required_columns if col not in records_df.columns]
+    if missing_columns:
+        raise ValueError(f"Missing required columns in records_df: {missing_columns}")
 
-    # Recalculate Risk Amount and Target for all records
-    records_df['Risk Amount'] = records_df['Close'] - records_df['ll']
-    records_df['Target'] = (2 * records_df['Risk Amount']) + records_df['Close']
-    records_df['Target'] = records_df['Target'].round(2)
+    # Ensure default values for required columns, should delete after file works properly
+    for col in required_columns:
+        if records_df[col].dtype == 'float64' or records_df[col].dtype == 'int64':
+            records_df[col] = records_df[col].fillna(0)  # Numeric columns
+        elif records_df[col].dtype == 'object':
+            records_df[col] = records_df[col].fillna('')  # String columns
+        elif pd.api.types.is_datetime64_any_dtype(records_df[col]):
+            records_df[col] = records_df[col].fillna(pd.NaT)  # Date columns
+        else:
+            records_df[col] = records_df[col].fillna('')  # Fallback for other types
 
-    # Insert updated records into reversed_table
-    for _, row in records_df.iterrows():
-        insert_into_reversed_query = '''
-        INSERT INTO reversed_table (
-            "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close", 
-            "Target", "Call", "Status", "Quantity", "Hit Type", "CMP", "CMP_Date",
-            "Sell Price", "Broker")
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT ("Buy Date", "Ticker")
-        DO NOTHING;
-        '''
-        cur.execute(insert_into_reversed_query, (
-            row["Buy Date"], row["Ticker"], row["Buy Strat"], row["Last Alert Date"],
-            row["ll"], row["Close"], row["Target"], row["Call"], row["Status"],
-            row["Quantity"], row["Hit Type"], row['CMP'], row['CMP_Date'], row["Sell Price"], row["Broker"]
-        ))
-    conn.commit()
-
-    # Function to adjust Call, Status, Hit Type, and Sell Price using the updated Target
+    # Define a safe adjust_call_status function
     def adjust_call_status(row):
-        # Check if CMP < ll to hit ISL
-        if pd.notnull(row['CMP']) and pd.notnull(row['ll']) and row['CMP'] < row['ll']:
-            return 'Short', 'Closed', 'ISL Hit', round(row['ll'], 2)
-        # Check if CMP <= Target to hit the adjusted Target
-        elif pd.notnull(row['CMP']) and pd.notnull(row['Target']) and row['CMP'] >= row['Target']:
-            return 'Short', 'Closed', 'Target Hit', round(row['Target'], 2)
-        # If conditions are not met, return original Call, Status, Hit Type, and Sell Price as None
-        return row['Call'], row['Status'], None, None
+        try:
+            if pd.notnull(row['CMP']) and pd.notnull(row['ll']) and row['CMP'] < row['ll']:
+                return 'Short', 'Closed', 'ISL Hit', round(row['ll'], 2)
+            elif pd.notnull(row['CMP']) and pd.notnull(row['Target']) and row['CMP'] >= row['Target']:
+                return 'Short', 'Closed', 'Target Hit', round(row['Target'], 2)
+            return row.get('Call', ''), row.get('Status', ''), None, None
+        except Exception as e:
+            print(f"Error processing row: {row}\nError: {e}")
+            return row.get('Call', ''), row.get('Status', ''), None, None
 
-    # Apply the logic to update the DataFrame
-    records_df[['Call', 'Status', 'Hit Type', 'Sell Price']] = records_df.apply(
-        lambda row: adjust_call_status(row), axis=1, result_type='expand'
-    )
+    # Apply the safe function to update the DataFrame
+    try:
+        records_df[['Call', 'Status', 'Hit Type', 'Sell Price']] = records_df.apply(
+            lambda row: adjust_call_status(row), axis=1, result_type='expand'
+        )
+    except Exception as e:
+        print("Error applying adjust_call_status:", e)
+        print("Sample problematic rows:")
+        print(records_df.head())
+        raise
 
     # Round Sell Price to 2 decimal places
     records_df['Sell Price'] = records_df['Sell Price'].round(2)
@@ -479,46 +477,9 @@ def transfer_reversed():
         ))
     conn.commit()
 
-    # Separate Closed records to transfer to archived_trades
-    to_archive = records_df[records_df["Status"] == "Closed"]
-
-    # Insert Closed records into archived_trades
-    for _, row in to_archive.iterrows():
-        insert_into_archive_query = '''
-        INSERT INTO archived_trades (
-            "Buy Date", "Ticker", "Buy Strat", "Last Alert Date", "ll", "Close", 
-            "Target", "Call", "Status", "CMP", "CMP_Date", "Quantity", "Hit Type", 
-            "Sell Price", "Broker")
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT ("Buy Date", "Ticker")
-        DO NOTHING;
-        '''
-        cur.execute(insert_into_archive_query, (
-            row["Buy Date"], row["Ticker"], row["Buy Strat"], row["Last Alert Date"],
-            row["ll"], row["Close"], row["Target"], row["Call"], row["Status"],
-            row["CMP"], row["CMP_Date"], row["Quantity"], row["Hit Type"],
-            row["Sell Price"], row["Broker"]
-        ))
-    conn.commit()
-
-    # Delete the Closed records from trade_journal after archiving
-    delete_query = '''
-    DELETE FROM trade_journal
-    WHERE "Buy Date" = "CMP_Date" AND "Status" = 'Closed';
-    '''
-    cur.execute(delete_query)
-    conn.commit()
-
-    # Delete the Closed records from reversed_table after archiving
-    delete_query2 = '''
-    DELETE FROM reversed_table
-    WHERE "Status" = 'Closed';
-    '''
-    cur.execute(delete_query2)
-    conn.commit()
-
     cur.close()
     conn.close()
+
 
 
 
@@ -583,14 +544,23 @@ def update_table_with_adjusted_status(table_name, conn):
     '''
     records_df = pd.read_sql(fetch_query, conn)
 
-    # Apply adjust_call_status logic
+    # Define the adjust_call_status logic with conditional logic for table_name
     def adjust_call_status(row):
-        if pd.notnull(row['CMP']) and pd.notnull(row['ll']) and row['CMP'] < row['ll']:
-            return 'Short', 'Closed', 'ISL Hit', round(row['ll'], 2)
-        elif pd.notnull(row['CMP']) and pd.notnull(row['Target']) and row['CMP'] >= row['Target']:
-            return 'Short', 'Closed', 'Target Hit', round(row['Target'], 2)
+        if table_name == "trade_journal":
+            # Logic for reversed_table
+            if pd.notnull(row['CMP']) and pd.notnull(row['ll']) and row['CMP'] < row['ll']:
+                return 'Short', 'Closed', 'ISL Hit', round(row['ll'], 2)
+            elif pd.notnull(row['CMP']) and pd.notnull(row['Target']) and row['CMP'] <= row['Target']:
+                return 'Short', 'Closed', 'Target Hit', round(row['Target'], 2)
+        else:
+            # Logic for other tables
+            if pd.notnull(row['CMP']) and pd.notnull(row['ll']) and row['CMP'] < row['ll']:
+                return 'Short', 'Closed', 'ISL Hit', round(row['ll'], 2)
+            elif pd.notnull(row['CMP']) and pd.notnull(row['Target']) and row['CMP'] > row['Target']:
+                return 'Short', 'Closed', 'Target Hit', round(row['Target'], 2)
         return row['Call'], row['Status'], None, None
 
+    # Apply the adjust_call_status logic
     records_df[['Call', 'Status', 'Hit Type', 'Sell Price']] = records_df.apply(
         lambda row: adjust_call_status(row), axis=1, result_type='expand'
     )
@@ -613,6 +583,7 @@ def update_table_with_adjusted_status(table_name, conn):
         ))
     conn.commit()
     cur.close()
+
 
 # Functions for specific tables
 def update_trade_journal():
@@ -730,9 +701,9 @@ def main():
     final_table = load_and_merge_csv()
     merged_table = fetch_and_merge_from_postgresql(final_table)
     save_and_upload(merged_table)
-    transfer_closed()
     update_trade_journal()
     transfer_reversed()
+    transfer_closed()
     update_reversed_table()
     fetch_and_export_to_excel()
 
