@@ -234,7 +234,7 @@ def save_and_upload(merged_table):
         "CMP" FLOAT, 
         "CMP_Date" DATE,
         "Target" FLOAT,
-        PRIMARY KEY ("Stock", "Trade Day")
+        PRIMARY KEY ("Stock", "Trade Day", "Account")
     );
     '''
     cur.execute(create_table_query)
@@ -247,7 +247,7 @@ def save_and_upload(merged_table):
         INSERT INTO tj ("Trade Day", "System", "Trade Direction", "Stock", "Entry Price", "ISL/TSL", "Buy Qty", 
         "Sell Qty", "Sell Price", "Exit Strategy", "Commission", "Trade Category", "Account", "CMP", "CMP_Date", "Target") 
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT ("Stock", "Trade Day")
+        ON CONFLICT ("Stock", "Trade Day", "Account")
         DO UPDATE SET 
             "System" = EXCLUDED."System",
             "Trade Direction" = EXCLUDED."Trade Direction",
@@ -259,7 +259,6 @@ def save_and_upload(merged_table):
             "Exit Strategy" = EXCLUDED."Exit Strategy",
             "Commission" = EXCLUDED."Commission",
             "Trade Category" = EXCLUDED."Trade Category",
-            "Account" = EXCLUDED."Account",
             "CMP" = EXCLUDED."CMP",
             "CMP_Date" = EXCLUDED."CMP_Date",
             "Target" = EXCLUDED."Target";
@@ -274,7 +273,7 @@ def save_and_upload(merged_table):
     update_query_cmp = '''
     UPDATE tj 
     SET
-        "CMP" = y."CMP",
+        "CMP" = y."CMP"
     FROM yfinance_data y
     WHERE tj."Stock" = y."Ticker"
     '''
@@ -349,11 +348,11 @@ def update_table_with_adjusted_status(table_name, conn):
             "Trade Direction" = %s,
             "Exit Strategy" = %s,
             "Sell Price" = %s
-        WHERE "Trade Day" = %s AND "Stock" = %s;
+        WHERE "Trade Day" = %s AND "Stock" = %s AND "Account" = %s;
         '''
         cur.execute(update_query, (
             row["Trade Direction"], row["Exit Strategy"], row["Sell Price"],
-            row["Trade Day"], row["Stock"]
+            row["Trade Day"], row["Stock"], row["Account"]
         ))
     conn.commit()
     cur.close()
@@ -399,7 +398,7 @@ def transfer_closed():
         "CMP" FLOAT,
         "CMP_Date" DATE,
         "Target" FLOAT,
-        PRIMARY KEY ("Stock", "Trade Day")
+        PRIMARY KEY ("Stock", "Trade Day", "Account")
     );
     '''
     cur.execute(create_archive_table_query)
@@ -443,7 +442,7 @@ def transfer_closed():
             "Buy Qty", "Sell Qty", "Sell Price", "Exit Strategy", "Commission",
             "Trade Category", "Account", "CMP", "CMP_Date", "Target")
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT ("Stock", "Trade Day")
+        ON CONFLICT ("Stock", "Trade Day", "Account")
         DO NOTHING;
         '''
         cur.execute(insert_into_archived_query, tuple(row))
